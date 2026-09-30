@@ -84,6 +84,32 @@ def test_status_constants_are_distinct():
     assert len({STATUS_OK, STATUS_NOT_FOUND, STATUS_NO_PERMISSION, STATUS_ERROR}) == 4
 
 
+def test_every_order_id_referenced_by_the_eval_set_exists(tmp_path):
+    """评测集里出现过的订单号，业务库里必须真的有。
+
+    这条是端到端跑出来的：S6 的订单号是 200001–200016，而库里只有 O1001–O1010，
+    于是「补齐订单号之后应该查通」变成了「查不到 → 转人工」，
+    S6 的路由准确率凭空掉到 0。**评测集与业务库对不上账**，
+    症状却表现为「系统路由错了」—— 一个很容易被误诊的失败。
+    """
+    import re
+
+    from csagent.evaluation.cases import build_cases
+
+    p = tmp_path / "biz.db"
+    build_db(p)
+    conn = connect(p)
+    referenced: set[str] = set()
+    for c in build_cases():
+        referenced.update(re.findall(r"\d{6,}", c.message))
+    assert referenced, "评测集里一个订单号都没有？那 S4/S6 测的是什么"
+    missing = [
+        oid for oid in sorted(referenced)
+        if conn.execute("SELECT 1 FROM orders WHERE order_id = ?", (oid,)).fetchone() is None
+    ]
+    assert not missing, f"评测集引用了库里不存在的订单：{missing}"
+
+
 def test_lookup_raw_swallows_sqlite_errors(tmp_path):
     """查询失败返回 error，**不抛异常** —— 降级路径依赖这一点。"""
     broken = sqlite3.connect(":memory:")  # 没有任何表

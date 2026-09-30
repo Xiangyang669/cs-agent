@@ -11,11 +11,12 @@ from langgraph.graph import END, START, StateGraph
 
 from csagent.agents import reply as reply_agent
 from csagent.agents.business import build_business_subgraph
+from csagent.agents.guardrail import evaluate
 from csagent.agents.knowledge import build_knowledge_subgraph
 from csagent.agents.triage_rules import rules_triage
 from csagent.config import DEFAULT_TOP_K
 from csagent.faults import FaultPolicy
-from csagent.routing import route_after_triage
+from csagent.routing import route_after_guardrail, route_after_triage
 from csagent.types import Route, Ticket
 
 # 节点名与 Route 的取值刻意保持一致 —— 条件边的映射因此是恒等的，
@@ -25,6 +26,7 @@ NODE_ASK = Route.ASK_USER.value
 NODE_KNOWLEDGE = Route.KNOWLEDGE.value
 NODE_BUSINESS = Route.BUSINESS.value
 NODE_HUMAN = Route.HUMAN.value
+NODE_GUARDRAIL = "guardrail"
 NODE_REPLY = "reply"
 
 
@@ -38,6 +40,19 @@ def _hop(ticket: Ticket, node: str) -> dict:
     return {
         "route_taken": node,
         "first_hop_taken": ticket.get("first_hop_taken") or node,
+    }
+
+
+def _guardrail_node(ticket: Ticket) -> dict:
+    """终判 —— 拿到证据之后的第二次判定。
+
+    它只写两个键：`handoff_to_human` 与 `handoff_reason`。往哪走由
+    `route_after_guardrail` 决定，节点本身不决定控制流。
+    """
+    verdict = evaluate(ticket)
+    return {
+        "handoff_to_human": verdict.handoff,
+        "handoff_reason": verdict.reason,
     }
 
 
@@ -146,11 +161,15 @@ def _default_conn_provider():
     return provider
 
 
-def build_graph(retriever, checkpointer=None, conn=None):
+def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True):
     """按配置构建一张客服图。
 
     只给**启用的**机制建节点 —— 未启用的能力根本不在图里，
     从结构上保证它不会被调用（而不是靠节点内部 if 判断）。
+
+    ⚠️ `guardrail=False` 时守卫节点**根本不在图里**。这不是「守卫被跳过」，
+       而是「这套配置里没有守卫」—— 两种说法对应两张不同的图，
+       评测矩阵的「配置」这一维量的正是这个差别。
     """
     conn_provider = _default_conn_provider() if conn is None else (lambda: conn)
 
@@ -162,6 +181,8 @@ def build_graph(retriever, checkpointer=None, conn=None):
     builder.add_node(NODE_BUSINESS, _business_node(conn_provider))
     builder.add_node(NODE_HUMAN, _human_node)
     builder.add_node(NODE_REPLY, _reply_node)
+    if guardrail:
+        builder.add_node(NODE_GUARDRAIL, _guardrail_node)
 
     builder.add_edge(START, NODE_TRIAGE)
     builder.add_conditional_edges(
@@ -170,9 +191,16 @@ def build_graph(retriever, checkpointer=None, conn=None):
         [NODE_ASK, NODE_KNOWLEDGE, NODE_BUSINESS, NODE_HUMAN],
     )
 
-    # 中间两路拿到证据后汇入回复；两个终点直接结束
-    builder.add_edge(NODE_KNOWLEDGE, NODE_REPLY)
-    builder.add_edge(NODE_BUSINESS, NODE_REPLY)
+    # 中间两路拿到证据后：有守卫就先过守卫，没有就直接回复
+    if guardrail:
+        builder.add_edge(NODE_KNOWLEDGE, NODE_GUARDRAIL)
+        builder.add_edge(NODE_BUSINESS, NODE_GUARDRAIL)
+        builder.add_conditional_edges(NODE_GUARDRAIL, route_after_guardrail,
+                                      [NODE_HUMAN, NODE_REPLY])
+    else:
+        builder.add_edge(NODE_KNOWLEDGE, NODE_REPLY)
+        builder.add_edge(NODE_BUSINESS, NODE_REPLY)
+
     builder.add_edge(NODE_REPLY, END)
     builder.add_edge(NODE_ASK, END)
     builder.add_edge(NODE_HUMAN, END)

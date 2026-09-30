@@ -112,6 +112,36 @@ _SEED_RESTRICTED = (
     ("acc-002", "账户处于风控复核中，客服无权查看明细"),
 )
 
+# ── 评测集引用的订单号 ────────────────────────────────────────────
+# 这些**必须在库里真的存在**，否则两件事会悄悄失效：
+#   S6「补齐订单号之后应该查通」会变成「查不到 → 转人工」，路由准确率凭空掉到 0；
+#   S4 的故障就失去意义 —— 故障要注入在**一条本可成功的查询**上，
+#   而不是注入在一个本来就查不到的订单上。
+#
+# 对账由 `tests/test_tools_db.py` 的
+# `test_every_order_id_referenced_by_the_eval_set_exists` 钉住。
+# （这一条是端到端跑出来的：症状表现为「系统路由错了」，
+#   真正的原因却是评测集与业务库对不上账 —— 很容易误诊。）
+_EVAL_ORDERS = tuple(
+    (f"1{i:05d}", f"acc-2{i:02d}", "课程A", 199.00, "paid", "2026-08-20")
+    for i in range(1, 21)  # 100001..100020 —— S4 引用
+) + tuple(
+    (f"2{i:05d}", f"acc-3{i:02d}", "课程A", 299.00, "paid", "2026-08-21")
+    for i in range(1, 17)  # 200001..200016 —— S6 引用
+)
+
+_EVAL_PAYMENTS = tuple(
+    (f"P4{i:03d}", f"1{i:05d}", 199.00, "success", "2026-08-20") for i in range(1, 21)
+) + tuple(
+    (f"P5{i:03d}", f"2{i:05d}", 299.00, "success", "2026-08-21") for i in range(1, 17)
+)
+
+_EVAL_PERMISSIONS = tuple(
+    (f"acc-2{i:02d}", "课程A", 1, "已开通") for i in range(1, 21)
+) + tuple(
+    (f"acc-3{i:02d}", "课程A", 1, "已开通") for i in range(1, 17)
+)
+
 
 def connect(path: Path | str) -> sqlite3.Connection:
     """打开业务库。行按列名可读 —— 上层判定读的是字段名，不是下标。"""
@@ -129,9 +159,12 @@ def build_db(path: Path | str) -> None:
         conn.executescript(SCHEMA)
         for table in ("orders", "payments", "permissions", "restricted_accounts"):
             conn.execute(f"DELETE FROM {table}")
-        conn.executemany("INSERT INTO orders VALUES (?,?,?,?,?,?)", _SEED_ORDERS)
-        conn.executemany("INSERT INTO payments VALUES (?,?,?,?,?)", _SEED_PAYMENTS)
-        conn.executemany("INSERT INTO permissions VALUES (?,?,?,?)", _SEED_PERMISSIONS)
+        conn.executemany("INSERT INTO orders VALUES (?,?,?,?,?,?)",
+                         _SEED_ORDERS + _EVAL_ORDERS)
+        conn.executemany("INSERT INTO payments VALUES (?,?,?,?,?)",
+                         _SEED_PAYMENTS + _EVAL_PAYMENTS)
+        conn.executemany("INSERT INTO permissions VALUES (?,?,?,?)",
+                         _SEED_PERMISSIONS + _EVAL_PERMISSIONS)
         conn.executemany("INSERT INTO restricted_accounts VALUES (?,?)", _SEED_RESTRICTED)
         conn.commit()
     finally:

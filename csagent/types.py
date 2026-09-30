@@ -138,6 +138,9 @@ class Ticket(TypedDict, total=False):
     faults_hit: list[str]
     degraded: bool
 
+    # ── 终判 ──
+    handoff_to_human: bool
+
     # ── 审计 ──
     route_taken: str
     # 首跳：分流之后**第一步**进了哪个节点。与 route_taken 分开，
