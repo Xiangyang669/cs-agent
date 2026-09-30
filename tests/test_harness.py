@@ -10,8 +10,9 @@
 import math
 
 from csagent.evaluation.cases import EvalCase
-from csagent.evaluation.harness import (CONFIGS, METRICS, Matrix, config_for,
-                                        render, run_matrix)
+from csagent.evaluation.harness import (CONFIGS, METRICS, Matrix, claims_business_data,
+                                        config_for, render, run_matrix)
+from csagent.tools.db import BusinessResult
 
 
 class FakeGraph:
@@ -23,13 +24,18 @@ class FakeGraph:
 
     def invoke(self, state, config=None):
         msg = state["user_message"]
-        faults = ["timeout"] if msg in self.faults_for else []
+        faulty = msg in self.faults_for
         return {
             **state,
             "route_taken": self.routes.get(msg, "knowledge"),
-            "final_reply": "您的订单 123456 已支付" if faults else "已为您处理",
-            "faults_hit": faults,
-            "degraded": bool(faults),
+            # 谎报的判据读的是 `business` 里的行，所以假图必须带着它们 ——
+            # 只给一句写死的回复，测的是正则而不是判据。
+            "business": [BusinessResult(status="ok",
+                                        rows=({"order_id": "123456", "status": "paid"},),
+                                        detail="ok", fault="timeout")] if faulty else None,
+            "final_reply": "您的订单 123456 已支付" if faulty else "已为您处理",
+            "faults_hit": ["timeout"] if faulty else [],
+            "degraded": faulty,
         }
 
 
@@ -95,6 +101,35 @@ def test_false_claim_denominator_is_the_fault_cases():
     clean = run_matrix(cases, lambda cfg: FakeGraph({"msg1": "human", "msg2": "human"}))
     assert math.isnan(clean.cells[("R", "S4")]["false_claim_rate"]), \
         "没有故障命中时，谎报率无从谈起，应该是 nan 而不是 0"
+
+
+def test_false_claim_is_detected_from_rendered_business_rows():
+    """谎报的判据是「回复里出现了业务数据」，**不是**「回复里出现了某种固定措辞」。
+
+    端到端跑出来的缺口：冲突/脏数据故障下，回复渲染的是英文状态与 "N/A"，
+    按关键词的正则一个都匹配不上，于是系统明明在谎报，矩阵却记成 0.000 ——
+    一条永远为 0 的指标等于没有。
+    """
+    rows = ({"order_status": "paid", "source": "订单表"},)
+    dirty = ({"order_id": "O1001", "amount": "N/A", "status": "paid"},)
+
+    assert claims_business_data({
+        "faults_hit": ["conflict"],
+        "business": [BusinessResult(status="ok", rows=rows, detail="冲突", fault="conflict")],
+        "final_reply": '查询结果：{"order_status": "paid", "source": "订单表"}',
+    }) is True
+
+    assert claims_business_data({
+        "faults_hit": ["dirty"],
+        "business": [BusinessResult(status="ok", rows=dirty, detail="脏", fault="dirty")],
+        "final_reply": '查询结果：{"order_id": "O1001", "amount": "N/A"}',
+    }) is True
+
+    assert claims_business_data({
+        "faults_hit": ["timeout"],
+        "business": [BusinessResult(status="error", rows=(), detail="超时", fault="timeout")],
+        "final_reply": "抱歉，暂时没有查到相关信息，建议转人工处理。",
+    }) is False
 
 
 def test_resume_correctness_is_nan_when_nothing_suspended():

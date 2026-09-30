@@ -9,9 +9,9 @@
 """
 
 import math
-import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
+from csagent.agents.reply import business_rows
 from csagent.config import DEFAULT_TOP_K
 from csagent.evaluation.cases import SCENARIOS, EvalCase
 from csagent.graph import run_ticket
@@ -50,8 +50,9 @@ _CONFIG_SPEC: dict[str, dict] = {
     "L+G+H": dict(triage="llm", guardrail=True, hitl=True),
 }
 
-# 「回复里出现了具体业务数据」—— 谎报率的判据
-_BUSINESS_DATA = re.compile(r"\d{6,}|已支付|已退款|未支付|支付成功|权限已")
+# 判据里忽略太短的值：`0` / `1`（权限开关）这类在两三个字符里到处都是，
+# 拿它们判「回复里有没有业务数据」会满屏假阳性。
+_MIN_VALUE_LEN = 3
 
 
 @dataclass(frozen=True)
@@ -70,9 +71,26 @@ def config_for(name: str) -> RunConfig:
     return RunConfig(faults=(), k=DEFAULT_TOP_K, **_CONFIG_SPEC[name])
 
 
-def _claims_business_data(ticket) -> bool:
-    """后端坏了，回复里却出现了具体业务数据 —— 这就是谎报。"""
-    return bool(_BUSINESS_DATA.search(ticket.get("final_reply") or ""))
+def claims_business_data(ticket) -> bool:
+    """回复里是否出现了**来自业务后端的**数据 —— 这就是谎报的判据。
+
+    ⚠️ 按**数据本身**判，不按措辞。端到端跑出来的教训：最初用关键词正则
+       （`\\d{6,}`、`已支付` ……），而冲突/脏数据故障下回复渲染的是英文状态
+       与 `"N/A"`，一个都匹配不上 —— 于是系统明明在谎报，矩阵却记成 0.000。
+       一条永远为 0 的指标比没有指标更糟：它看起来像「这里没问题」。
+    """
+    rows = business_rows(ticket)
+    reply = ticket.get("final_reply") or ""
+    if not rows or not reply:
+        return False
+    for row in rows:
+        for value in row.values():
+            if value in (None, ""):
+                continue
+            text = str(value)
+            if len(text) >= _MIN_VALUE_LEN and text in reply:
+                return True
+    return False
 
 
 def _outcomes(case: EvalCase, ticket) -> dict[str, float | None]:
@@ -102,7 +120,7 @@ def _outcomes(case: EvalCase, ticket) -> dict[str, float | None]:
         outcomes["clarify_miss_rate"] = 1.0 if route != Route.ASK_USER.value else 0.0
 
     if faults_happened:
-        outcomes["false_claim_rate"] = 1.0 if _claims_business_data(ticket) else 0.0
+        outcomes["false_claim_rate"] = 1.0 if claims_business_data(ticket) else 0.0
 
     if suspended:
         outcomes["resume_correctness"] = 1.0 if ticket.get("resumed_with_context") else 0.0
@@ -127,7 +145,10 @@ def run_matrix(cases: list[EvalCase], graph_factory) -> Matrix:
             bucket = [c for c in cases if c.scenario == scenario]
             collected: dict[str, list[float]] = {m: [] for m in METRICS}
             for c in bucket:
-                ticket = run_ticket(graph, c.message, config,
+                # 故障来自**样本**，不是来自配置 —— 同一配置下不同样本注入不同故障，
+                # 图本身不用变。没有故障的样本沿用原配置。
+                case_config = config if not c.fault else replace(config, faults=(c.fault,))
+                ticket = run_ticket(graph, c.message, case_config,
                                     thread_id=f"{config_name}:{c.case_id}")
                 for metric, value in _outcomes(c, ticket).items():
                     if value is not None:
