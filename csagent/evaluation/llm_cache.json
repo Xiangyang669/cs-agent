@@ -1,0 +1,296 @@
+{
+  "本轮用户消息：\n下载课件怎么操作？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n优惠券要什么条件？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n会员升级怎么操作？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n如何修改手机号？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n如何取消订阅？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n如何更换教材？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n如何试看？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n如何转班？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n学生认证的规则是什么？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n帮我看看我的支付记录": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号",
+      "订单号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n延期的规则是什么？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n我付了钱，课程还是锁着": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号",
+      "订单号",
+      "课程名"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n我的观看权限没生效": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号",
+      "订单号",
+      "课程名"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n我的课程打不开了": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号",
+      "订单号",
+      "课程名"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n我要查一下我的订单": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号",
+      "订单号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n找回密码怎么操作？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n更换课程要什么条件？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n申请发票的规则是什么？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n绑定微信怎么操作？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n观看权限要什么条件？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n解锁课程怎么操作？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n证书申请的规则是什么？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "本轮用户消息：\n退课要什么条件？": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "faq",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  }
+}

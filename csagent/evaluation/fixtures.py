@@ -11,6 +11,7 @@
 
 from pathlib import Path
 
+from csagent.agents.triage import select_triage
 from csagent.graph import build_graph
 from csagent.memory.checkpointer import memory_checkpointer
 from csagent.tools.db import build_db, connect
@@ -37,11 +38,16 @@ class EmptyStubRetriever:
         return []
 
 
-def build_eval_graph_factory(db_path: Path | str, retriever=None):
+def build_eval_graph_factory(db_path: Path | str, retriever=None, client=None):
     """给 harness 用的图工厂。
 
     每次调用都用**独立的检查点**与**独立的连接** —— 评测要跑 400 多次，
     共享状态会让某一条样本的残留影响下一条。
+
+    `client` 是 LLM 配置要用的模型客户端：真实跑用 `RecordingLlm`，
+    重放用 `CachedLlm`。**默认没有**，此时 LLM 那几行跑不起来 ——
+    这是刻意的：绝不静默构造一个真实客户端，否则一次「离线」评测
+    会悄悄发出几百次外部调用。
     """
     db_path = Path(db_path)
     if not db_path.exists():
@@ -49,12 +55,14 @@ def build_eval_graph_factory(db_path: Path | str, retriever=None):
     retriever = retriever if retriever is not None else ContentStubRetriever()
 
     def factory(config):
+        strategy = select_triage(config.triage, client=client)
         return build_graph(
             retriever,
             checkpointer=memory_checkpointer(),
             conn=connect(db_path),
             guardrail=config.guardrail,
             hitl=config.hitl,
+            triage=strategy,
         )
 
     return factory

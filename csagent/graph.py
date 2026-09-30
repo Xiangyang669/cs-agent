@@ -16,7 +16,7 @@ from csagent.agents.guardrail import evaluate
 from csagent.agents.handoff import handoff_node
 from csagent.agents.knowledge import build_knowledge_subgraph
 from csagent import config
-from csagent.agents.triage_rules import rules_triage
+from csagent.agents.triage import default_triage
 from csagent.config import DEFAULT_TOP_K
 from csagent.faults import FaultPolicy
 from csagent.routing import (clarification_exhausted, hop_payload,
@@ -47,8 +47,17 @@ def _guardrail_node(ticket: Ticket) -> dict:
     }
 
 
-def _triage_node(ticket: Ticket) -> dict:
-    result = rules_triage(ticket.get("user_message", ""), ticket.get("history") or [])
+def _triage_node(strategy) -> callable:
+    """分流节点 —— 用哪套策略由**调用方注入**，节点本身不挑。"""
+
+    def node(ticket: Ticket) -> dict:
+        return _triage_payload(strategy(ticket.get("user_message", ""),
+                                        ticket.get("history") or []), ticket)
+
+    return node
+
+
+def _triage_payload(result, ticket: Ticket) -> dict:
     payload = {
         "intent": result.intent.value,
         "extracted": dict(result.extracted),
@@ -168,7 +177,7 @@ def _default_conn_provider():
 
 
 def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True,
-                hitl: bool = False):
+                hitl: bool = False, triage=None):
     """按配置构建一张客服图。
 
     只给**启用的**机制建节点 —— 未启用的能力根本不在图里，
@@ -184,10 +193,11 @@ def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True,
         raise ValueError("hitl=True 需要 checkpointer：挂起依赖持久化，缺了它挂不起来")
 
     conn_provider = _default_conn_provider() if conn is None else (lambda: conn)
+    strategy = triage if triage is not None else default_triage()
 
     builder = StateGraph(Ticket)
 
-    builder.add_node(NODE_TRIAGE, _triage_node)
+    builder.add_node(NODE_TRIAGE, _triage_node(strategy))
     builder.add_node(NODE_ASK, _ask_user_node)
     builder.add_node(NODE_KNOWLEDGE, _knowledge_node(build_knowledge_subgraph(retriever)))
     builder.add_node(NODE_BUSINESS, _business_node(conn_provider))
