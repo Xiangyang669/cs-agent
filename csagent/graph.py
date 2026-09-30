@@ -15,10 +15,12 @@ from csagent.agents.business import build_business_subgraph
 from csagent.agents.guardrail import evaluate
 from csagent.agents.handoff import handoff_node
 from csagent.agents.knowledge import build_knowledge_subgraph
+from csagent import config
 from csagent.agents.triage_rules import rules_triage
 from csagent.config import DEFAULT_TOP_K
 from csagent.faults import FaultPolicy
-from csagent.routing import hop_payload, route_after_guardrail, route_after_triage
+from csagent.routing import (clarification_exhausted, hop_payload,
+                             route_after_guardrail, route_after_triage)
 from csagent.types import RiskLevel, Route, Ticket
 
 # 节点名与 Route 的取值刻意保持一致 —— 条件边的映射因此是恒等的，
@@ -55,12 +57,17 @@ def _triage_node(ticket: Ticket) -> dict:
         "matched_clauses": result.matched_clauses,
         "needs_clarification": result.needs_clarification,
     }
-    # 分流判出高风险时，**顺手把转人工的理由写下**。
+    # 分流这一步会导致转人工时，**顺手把理由写下**。
     # 这一步不能留给接管节点：挂起原语会让节点永远不返回，
     # 理由就永远进不了状态 —— 而「转人工必须留下理由」是硬要求。
+    payload["clarification_count"] = ticket.get("clarification_count", 0)
     if result.risk_level is RiskLevel.HIGH:
         clauses = "、".join(m.clause_id for m in result.matched_clauses) or "风险信号"
         payload["handoff_reason"] = f"分流判定高风险（命中 {clauses}）"
+    elif clarification_exhausted(payload):
+        payload["handoff_reason"] = (
+            f"追问已达上限（{config.MAX_CLARIFICATIONS} 轮）仍未获得必需字段"
+        )
     return payload
 
 
@@ -292,7 +299,13 @@ def continue_ticket(graph, message: str, thread_id: str = "default",
     }
     if history is not None:
         payload["history"] = list(history)
-    return graph.invoke(payload, config={"configurable": {"thread_id": thread_id}})
+
+    result = graph.invoke(payload, config={"configurable": {"thread_id": thread_id}})
+    # ⚠️ 和 `run_ticket` 一样要做挂起回填。漏了这一步，续跑时若转人工挂起，
+    #    调用方看到的 `route_taken` 会是**上一轮**的值 —— 明明已经转人工了，
+    #    却报着「上一轮去了哪儿」。这个坑排查起来很费劲：行为是对的，
+    #    只有报告出来的那一格是错的。
+    return _mark_suspended(graph, thread_id, result)
 
 
 def resume_ticket(graph, human_reply: str, thread_id: str = "default") -> Ticket:

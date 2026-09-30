@@ -30,6 +30,18 @@ def hop_payload(ticket, node: str) -> dict:
     }
 
 
+def clarification_exhausted(ticket) -> bool:
+    """追问次数是否已经用尽。
+
+    单独抽出来，是因为**两个地方**都要用这个判定：路由拿它决定去哪，
+    分流节点拿它写转人工的理由。条件边是纯函数、不能写状态，
+    所以理由只能在节点里写 —— 而两处各写一遍比较，迟早会写歪。
+    """
+    return bool(ticket.get("needs_clarification")) and (
+        ticket.get("clarification_count", 0) >= config.MAX_CLARIFICATIONS
+    )
+
+
 def route_after_triage(ticket) -> str:
     """分流之后往哪走。返回 Route 的取值或节点名。"""
     if ticket.get("risk_level") == "high":
@@ -38,7 +50,7 @@ def route_after_triage(ticket) -> str:
     if ticket.get("needs_clarification"):
         # 追问也有上限：用户可能永远不给订单号，
         # 没有上限的追问回路会让会话永远结束不了。
-        if ticket.get("clarification_count", 0) >= config.MAX_CLARIFICATIONS:
+        if clarification_exhausted(ticket):
             return Route.HUMAN.value
         return Route.ASK_USER.value
 
