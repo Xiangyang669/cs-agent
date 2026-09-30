@@ -1,23 +1,27 @@
-"""评测集 —— 六类场景，约 110 条带标签样本。
+"""评测集 —— 从 `eval_set.json` 载入。
 
-**标签的三种来源**（`label_source`）：
+**样本不是代码生成的，是一份人审过的数据文件。** 这个区别很重要：
+代码生成样本时，「谁定的标签」这个问题没有答案；载入数据文件时，
+答案是「文件里 named 的那个人，在这一天」。评测的可信度就建立在这上面。
 
-| 值 | 含义 | 谁定的 |
-|---|---|---|
-| `policy` | 口径能机械判定 | `evaluation/policy.py` |
-| `derived` | 口径 + 一条**成文的**派生规则 | 目前只有一条：**注入了故障 ⇒ 转人工** |
-| `human` | 软条款，口径判不了 | 人 |
+**两条路由轴**（`first_hop` 与 `expected_route`）：
 
-**为什么 S4 的标签是 `derived` 而不是 `policy`**：口径只看**消息**，正常订单查询
-的标准去向确实是「查业务系统」；但后端故障时**正确动作是升级人工**，不是硬答。
-若把 S4 标成 `business`，那启用守卫的配置反而会被判成路由错误 —— 那就把
-「越守规矩分越低」写进了基准里。派生规则让这一点显式且可审。
+| 字段 | 含义 |
+|---|---|
+| `first_hop` | **首跳**：分流之后第一步该进哪个节点 |
+| `expected_route` | **最终去向**：整条会话结束时该停在哪 |
 
-⚠️ 样本**全部写死**，不用随机。评测结果要可复现，样本就得是常量。
-⚠️ `S5` 一律**手工写**：模板生成的口语很假，测不出规则与 LLM 的真实差距。
+两者在 S1/S2/S3/S5/S6 上相同，**只在 S4 上分开**：业务后端故障时，
+首跳仍然该是 `business`（该查就得查），但最终必须落到 `human`（查不到要升级）。
+把这两件事压成一个字段，就没法区分「路由错了」和「降级错了」——
+而后者恰恰是这个项目的命题。
 """
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
+
+_DATA_FILE = Path(__file__).resolve().parent / "eval_set.json"
 
 SCENARIOS: tuple[str, ...] = ("S1", "S2", "S3", "S4", "S5", "S6")
 
@@ -30,189 +34,80 @@ SCENARIO_LABELS: dict[str, str] = {
     "S6": "多轮补信息（追问闭环 + 状态保持）",
 }
 
-# 派生规则的唯一来源 —— 注入了故障，标准去向就是转人工
-DERIVED_FAULT_RULE = "注入了故障 ⇒ 标准去向 = 转人工（后端不可用时的正确动作是升级，不是硬答）"
+# 派生规则的唯一来源 —— 注入了故障，最终去向就是转人工
+DERIVED_FAULT_RULE = "注入了故障 ⇒ 最终去向 = 转人工（首跳仍为业务查询：该查就得查，查不到才升级）"
+
+
+@dataclass(frozen=True)
+class Turn:
+    """一轮发言。`role` 取 `"user"` 或 `"assistant"`。"""
+
+    role: str
+    message: str
 
 
 @dataclass(frozen=True)
 class EvalCase:
     case_id: str
     scenario: str
-    message: str
-    history: tuple[str, ...]
+    turns: tuple[Turn, ...]
+    first_hop: str
     expected_route: str
     clause_kind: str | None
     fault: str | None
     label_source: str
-    reviewed: bool = False
+    reviewed: bool
+
+    @property
+    def message(self) -> str:
+        """最后一轮**用户**消息 —— 判分口径只判这一句。"""
+        return next(t.message for t in reversed(self.turns) if t.role == "user")
+
+    @property
+    def history(self) -> tuple[str, ...]:
+        """此前用户说过的话。
+
+        ⚠️ **助手的话不进历史** —— 口径与规则引擎判的都是「用户说了什么」。
+           把助手那句「请提供您的订单号」拼进去，会让 S6 凭空多出一串
+           与用户意图无关的字，判出来的东西就不是我们要测的了。
+        """
+        users = [t.message for t in self.turns if t.role == "user"]
+        return tuple(users[:-1])
 
 
-# ── S1 · 标准 FAQ ────────────────────────────────────────────────
-_S1_TOPICS = (
-    "解锁课程", "修改手机号", "申请发票", "更换课程", "找回密码", "取消订阅",
-    "学生认证", "观看权限", "下载课件", "转班", "延期", "优惠券",
-    "会员升级", "试看", "证书申请", "退课", "绑定微信", "更换教材",
-)
-_S1_TEMPLATES = ("{t}怎么操作？", "如何{t}？", "{t}的规则是什么？", "{t}要什么条件？")
+def _to_case(raw: dict) -> EvalCase:
+    return EvalCase(
+        case_id=raw["case_id"],
+        # 数据文件里写作「S1 标准 FAQ(正路能否走通)」，取前面的编号
+        scenario=raw["scenario"].split()[0],
+        turns=tuple(Turn(t["role"], t["message"]) for t in raw["turns"]),
+        first_hop=raw["first_hop"],
+        expected_route=raw["expected_route"],
+        clause_kind=raw["clause_kind"],
+        fault=raw["fault"],
+        label_source=raw["label_source"],
+        reviewed=bool(raw["reviewed"]),
+    )
 
 
-def _build_s1() -> list[EvalCase]:
-    out = []
-    for i, topic in enumerate(_S1_TOPICS):
-        msg = _S1_TEMPLATES[i % len(_S1_TEMPLATES)].format(t=topic)
-        out.append(EvalCase(
-            case_id=f"S1-{i + 1:02d}", scenario="S1", message=msg, history=(),
-            expected_route="knowledge", clause_kind=None, fault=None, label_source="policy",
-        ))
-    return out
-
-
-# ── S2 · 缺字段 ──────────────────────────────────────────────────
-_S2_MESSAGES = (
-    "我要查一下我的订单", "我付了钱，课程还是锁着", "我的课程打不开了",
-    "帮我看看我的支付记录", "我的观看权限没生效", "我买了会员但没有权益",
-    "我的订单好像有问题", "帮我看下我的账户状态", "我的发票还没收到",
-    "我的退款到哪一步了", "我付了款但订单没显示", "我的账单对不上",
-    "帮我查我的课程权限", "我的账号看不了课程", "我买的那门课程不见了",
-    "帮我确认一下我的支付", "我的订单被取消了", "我的会员到期时间不对",
-)
-
-
-def _build_s2() -> list[EvalCase]:
-    return [
-        EvalCase(case_id=f"S2-{i + 1:02d}", scenario="S2", message=msg, history=(),
-                 expected_route="ask_user", clause_kind=None, fault=None, label_source="policy")
-        for i, msg in enumerate(_S2_MESSAGES)
-    ]
-
-
-# ── S3 · 高风险（硬条款） ─────────────────────────────────────────
-_S3_MESSAGES = (
-    "我要找人工", "能不能转人工", "让真人客服来处理", "我要投诉你们",
-    "我这个月被重复扣费了", "系统扣了两次钱", "为什么重复扣款",
-    "这明显是欺诈", "我怀疑被骗了", "你们这是诈骗吗",
-    "我要找律师", "我准备起诉你们", "这件事交给法务处理", "我要走法律途径",
-    "你们泄露了我的个人信息", "我的隐私被侵犯了",
-    "为什么把我封号了", "我的账号被封了", "我的账号被锁死了",
-    "这是退款争议，我不接受",
-)
-
-
-def _build_s3() -> list[EvalCase]:
-    return [
-        EvalCase(case_id=f"S3-{i + 1:02d}", scenario="S3", message=msg, history=(),
-                 expected_route="human", clause_kind="hard", fault=None, label_source="policy")
-        for i, msg in enumerate(_S3_MESSAGES)
-    ]
-
-
-# ── S4 · 业务故障 ────────────────────────────────────────────────
-_S4_TEMPLATES = (
-    "订单 {oid} 现在什么状态",
-    "帮我查一下订单 {oid} 的支付",
-    "订单 {oid} 为什么还是锁着",
-    "我的订单 {oid} 退款到哪了",
-    "订单 {oid} 能退吗",
-)
-_S4_FAULTS = ("timeout", "conflict", "no_permission", "dirty")
-
-
-def _build_s4() -> list[EvalCase]:
-    out: list[EvalCase] = []
-    for i in range(20):
-        oid = 100001 + i
-        msg = _S4_TEMPLATES[i % len(_S4_TEMPLATES)].format(oid=oid)
-        out.append(EvalCase(
-            case_id=f"S4-{i + 1:02d}", scenario="S4", message=msg, history=(),
-            expected_route="human", clause_kind=None,
-            fault=_S4_FAULTS[i % len(_S4_FAULTS)], label_source="derived",
-        ))
-    return out
-
-
-# ── S5 · 口语模糊（软条款）—— 手工写，不用模板 ─────────────────────
-_S5_MESSAGES = (
-    "这课我死活上不了，钱白花了",
-    "你们这样做太让人失望了",
-    "我真的很无奈，这个系统太难用了",
-    "搞了半天还是不行，气死我了",
-    "这也太坑了吧",
-    "体验真的很垃圾",
-    "一直没人管，问题一直没解决",
-    "我亏大了",
-    "太让人失望了，我考虑要不要继续用",
-    "这破系统气死我了",
-    "你们这服务真是让人无语，我很失望",
-    "钱白花了我很难受",
-    "一直没人理，太让人失望",
-    "这体验也太坑了",
-    "我真的气到了",
-    "感觉被坑了，很无奈",
-    "一直没解决，我很失望",
-    "亏了这么多，太让人失望",
-)
-
-
-def _build_s5() -> list[EvalCase]:
-    return [
-        EvalCase(case_id=f"S5-{i + 1:02d}", scenario="S5", message=msg, history=(),
-                 expected_route="human", clause_kind="soft", fault=None, label_source="human")
-        for i, msg in enumerate(_S5_MESSAGES)
-    ]
-
-
-# ── S6 · 多轮补信息 ──────────────────────────────────────────────
-_S6_TURNS = (
-    ("我要查一下我的订单", "订单号 200001，帮我看看"),
-    ("我的课程打不开", "订单 200002，你查一下"),
-    ("我付了钱但权限没生效", "订单号 200003"),
-    ("帮我查一下支付记录", "订单 200004，谢谢"),
-    ("我的退款还没到账", "订单号 200005"),
-    ("我买了会员没有权益", "订单 200006"),
-    ("我的订单状态不对", "订单号 200007"),
-    ("课程还是锁着的", "订单 200008"),
-    ("帮我看看退款进度", "订单号 200009"),
-    ("我的发票没收到", "订单 200010"),
-    ("支付显示失败但钱扣了", "订单号 200011"),
-    ("我的观看权限没了", "订单 200012"),
-    ("订单好像出问题了", "订单号 200013"),
-    ("我要退款", "订单 200014"),
-    ("帮我确认支付状态", "订单号 200015"),
-    ("我的课程权限没开通", "订单 200016"),
-)
-
-
-def _build_s6() -> list[EvalCase]:
-    return [
-        EvalCase(case_id=f"S6-{i + 1:02d}", scenario="S6", message=turn, history=(prev,),
-                 expected_route="business", clause_kind=None, fault=None, label_source="policy")
-        for i, (prev, turn) in enumerate(_S6_TURNS)
-    ]
-
-
-_BUILDERS = (_build_s1, _build_s2, _build_s3, _build_s4, _build_s5, _build_s6)
+def load_raw() -> dict:
+    """读原始 JSON —— 报告里要引用它的 meta（复核记录、语义说明）。"""
+    return json.loads(_DATA_FILE.read_text(encoding="utf-8"))
 
 
 def build_cases() -> list[EvalCase]:
-    """产出全部评测样本。**确定性**：同样调用得到同样结果。"""
-    cases: list[EvalCase] = []
-    for builder in _BUILDERS:
-        cases.extend(builder())
-    return cases
+    """产出全部评测样本。**确定性**：文件不变则结果不变。"""
+    return [_to_case(c) for c in load_raw()["cases"]]
 
 
-_MD_COLUMNS = ("case_id", "scenario", "message", "expected_route",
+_MD_COLUMNS = ("case_id", "scenario", "message", "first_hop", "expected_route",
                "clause_kind", "fault", "label_source", "reviewed")
 
 
 def render_review_markdown(cases: list[EvalCase]) -> str:
-    """生成**给人逐条审**的 Markdown 表。
-
-    这一份是要交给用户过目的产物：`reviewed` 列默认全为 `否`，
-    复核的动作由人做，不由代码代劳。
-    """
+    """生成供人逐条审的 Markdown 表。"""
     lines = [
-        "# cs-agent-v1 评测集（待人工复核）",
+        "# cs-agent-v1 评测集",
         "",
         f"共 {len(cases)} 条 · 标签来源：policy（口径可判）/ derived（故障派生）/ human（软条款人工）",
         "",
@@ -224,8 +119,9 @@ def render_review_markdown(cases: list[EvalCase]) -> str:
     for c in cases:
         lines.append("| " + " | ".join([
             c.case_id,
-            f"{c.scenario} {SCENARIO_LABELS[c.scenario]}",
+            c.scenario,
             c.message,
+            c.first_hop,
             c.expected_route,
             c.clause_kind or "—",
             c.fault or "—",

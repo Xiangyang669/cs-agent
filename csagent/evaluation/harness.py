@@ -19,6 +19,7 @@ from csagent.types import Route, RunConfig
 
 METRICS: tuple[str, ...] = (
     "route_accuracy",
+    "first_hop_accuracy",
     "miss_rate",
     "over_triage_rate",
     "false_claim_rate",
@@ -28,6 +29,7 @@ METRICS: tuple[str, ...] = (
 
 METRIC_LABELS: dict[str, str] = {
     "route_accuracy": "路由准确率",
+    "first_hop_accuracy": "首跳准确率",
     "miss_rate": "漏判率",
     "over_triage_rate": "误转率",
     "false_claim_rate": "谎报率",
@@ -37,7 +39,7 @@ METRIC_LABELS: dict[str, str] = {
 
 # 渲染顺序：漏判率与误转率**必须挨着** —— 它们是一对，分开列就没人会一起看
 _COLUMN_ORDER: tuple[str, ...] = (
-    "route_accuracy", "miss_rate", "over_triage_rate",
+    "route_accuracy", "first_hop_accuracy", "miss_rate", "over_triage_rate",
     "false_claim_rate", "clarify_miss_rate", "resume_correctness",
 )
 
@@ -104,6 +106,9 @@ def _outcomes(case: EvalCase, ticket) -> dict[str, float | None]:
 
     outcomes: dict[str, float | None] = {
         "route_accuracy": 1.0 if route == case.expected_route else 0.0,
+        # 首跳与最终去向**分开测**：S4 上首跳该是业务查询（该查就得查），
+        # 最终该落人工（查不到要升级）。压成一个指标，这两件事就分不出来。
+        "first_hop_accuracy": 1.0 if ticket.get("first_hop_taken") == case.first_hop else 0.0,
         "miss_rate": None,
         "over_triage_rate": None,
         "false_claim_rate": None,
@@ -149,7 +154,8 @@ def run_matrix(cases: list[EvalCase], graph_factory) -> Matrix:
                 # 图本身不用变。没有故障的样本沿用原配置。
                 case_config = config if not c.fault else replace(config, faults=(c.fault,))
                 ticket = run_ticket(graph, c.message, case_config,
-                                    thread_id=f"{config_name}:{c.case_id}")
+                                    thread_id=f"{config_name}:{c.case_id}",
+                                    history=list(c.history))
                 for metric, value in _outcomes(c, ticket).items():
                     if value is not None:
                         collected[metric].append(value)

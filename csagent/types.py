@@ -140,6 +140,10 @@ class Ticket(TypedDict, total=False):
 
     # ── 审计 ──
     route_taken: str
+    # 首跳：分流之后**第一步**进了哪个节点。与 route_taken 分开，
+    # 是为了把「路由错了」和「降级错了」区分开 —— S4 上首跳该是业务查询、
+    # 最终却该落在人工，压成一个字段这两件事就分不出来了。
+    first_hop_taken: str
     handoff_reason: str
     handoff_context: str
     clarification_count: int

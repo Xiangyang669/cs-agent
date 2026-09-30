@@ -1,0 +1,1925 @@
+{
+  "meta": {
+    "name": "customer-service-agent-routing-eval",
+    "total_cases": 110,
+    "route_semantics": {
+      "first_hop": "首跳路由:agent 第一步应进入的节点",
+      "expected_route": "最终去向:agent 结束时的节点(S4 为故障降级后的去向)"
+    },
+    "routes": [
+      "knowledge",
+      "ask_user",
+      "business",
+      "human"
+    ],
+    "fault_injection": {
+      "scope": "S4",
+      "types": [
+        "timeout",
+        "conflict",
+        "no_permission",
+        "dirty"
+      ],
+      "note": "S4 需通过 mock 工具注入对应 fault;其无故障对照组为 S6(同意图→business)"
+    },
+    "turns_note": "S6 为多轮对话,前两轮是缺字段追问闭环,最后一轮补订单号后应直查业务系统",
+    "distribution": {
+      "S1": 18,
+      "S2": 18,
+      "S3": 20,
+      "S4": 20,
+      "S5": 18,
+      "S6": 16
+    }
+  },
+  "cases": [
+    {
+      "case_id": "S1-01",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "解锁课程怎么操作？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-02",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "如何修改手机号？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-03",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "申请发票的规则是什么？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-04",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "更换课程要什么条件？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-05",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "找回密码怎么操作？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-06",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "如何取消订阅？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-07",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "学生认证的规则是什么？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-08",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "观看权限要什么条件？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-09",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "下载课件怎么操作？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-10",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "如何转班？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-11",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "延期的规则是什么？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-12",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "优惠券要什么条件？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-13",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "会员升级怎么操作？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-14",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "如何试看？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-15",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "证书申请的规则是什么？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-16",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "退课要什么条件？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-17",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "绑定微信怎么操作？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S1-18",
+      "scenario": "S1 标准 FAQ(正路能否走通)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "如何更换教材？"
+        }
+      ],
+      "first_hop": "knowledge",
+      "expected_route": "knowledge",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-01",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-02",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我付了钱，课程还是锁着"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-03",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的课程打不开了"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-04",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我看看我的支付记录"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-05",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的观看权限没生效"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-06",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我买了会员但没有权益"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-07",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的订单好像有问题"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-08",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我看下我的账户状态"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-09",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的发票还没收到"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-10",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的退款到哪一步了"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-11",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我付了款但订单没显示"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-12",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的账单对不上"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-13",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我查我的课程权限"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-14",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的账号看不了课程"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-15",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我买的那门课程不见了"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-16",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我确认一下我的支付"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-17",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的订单被取消了"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S2-18",
+      "scenario": "S2 缺字段(不猜、要追问)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的会员到期时间不对"
+        }
+      ],
+      "first_hop": "ask_user",
+      "expected_route": "ask_user",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-01",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要找人工"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-02",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "能不能转人工"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-03",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "让真人客服来处理"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-04",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要投诉你们"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-05",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我这个月被重复扣费了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-06",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "系统扣了两次钱"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-07",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "为什么重复扣款"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-08",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这明显是欺诈"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-09",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我怀疑被骗了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-10",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "你们这是诈骗吗"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-11",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要找律师"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-12",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我准备起诉你们"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-13",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这件事交给法务处理"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-14",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要走法律途径"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-15",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "你们泄露了我的个人信息"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-16",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的隐私被侵犯了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-17",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "为什么把我封号了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-18",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的账号被封了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-19",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的账号被锁死了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S3-20",
+      "scenario": "S3 高风险硬条款(漏判率的主场)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这是退款争议，我不接受"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "hard",
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-01",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100001 现在什么状态"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "timeout",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-02",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我查一下订单 100002 的支付"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "conflict",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-03",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100003 为什么还是锁着"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "no_permission",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-04",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的订单 100004 退款到哪了"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "dirty",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-05",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100005 能退吗"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "timeout",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-06",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100006 现在什么状态"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "conflict",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-07",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我查一下订单 100007 的支付"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "no_permission",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-08",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100008 为什么还是锁着"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "dirty",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-09",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的订单 100009 退款到哪了"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "timeout",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-10",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100010 能退吗"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "conflict",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-11",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100011 现在什么状态"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "no_permission",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-12",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我查一下订单 100012 的支付"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "dirty",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-13",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100013 为什么还是锁着"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "timeout",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-14",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的订单 100014 退款到哪了"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "conflict",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-15",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100015 能退吗"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "no_permission",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-16",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100016 现在什么状态"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "dirty",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-17",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "帮我查一下订单 100017 的支付"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "timeout",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-18",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100018 为什么还是锁着"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "conflict",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-19",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我的订单 100019 退款到哪了"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "no_permission",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S4-20",
+      "scenario": "S4 业务故障(降级正确性 + 谎报率)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "订单 100020 能退吗"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "human",
+      "clause_kind": null,
+      "fault": "dirty",
+      "label_source": "derived",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-01",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这课我死活上不了，钱白花了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-02",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "你们这样做太让人失望了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-03",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我真的很无奈，这个系统太难用了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-04",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "搞了半天还是不行，气死我了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-05",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这也太坑了吧"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-06",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "体验真的很垃圾"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-07",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "一直没人管，问题一直没解决"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-08",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我亏大了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-09",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "太让人失望了，我考虑要不要继续用"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-10",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这破系统气死我了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-11",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "你们这服务真是让人无语，我很失望"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-12",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "钱白花了我很难受"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-13",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "一直没人理，太让人失望"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-14",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "这体验也太坑了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-15",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我真的气到了"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-16",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "感觉被坑了，很无奈"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-17",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "一直没解决，我很失望"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S5-18",
+      "scenario": "S5 口语模糊软条款(规则做不到的那部分)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "亏了这么多，太让人失望"
+        }
+      ],
+      "first_hop": "human",
+      "expected_route": "human",
+      "clause_kind": "soft",
+      "fault": null,
+      "label_source": "human",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-01",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200001，帮我看看"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-02",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200002，你查一下"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-03",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200003"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-04",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200004，谢谢"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-05",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200005"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-06",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200006"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-07",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200007"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-08",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200008"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-09",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200009"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-10",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200010"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-11",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200011"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-12",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200012"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-13",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200013"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-14",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200014"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-15",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单号 200015"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    },
+    {
+      "case_id": "S6-16",
+      "scenario": "S6 多轮补信息(追问闭环 + 状态保持)",
+      "turns": [
+        {
+          "role": "user",
+          "message": "我要查一下我的订单"
+        },
+        {
+          "role": "assistant",
+          "message": "请提供您的订单号"
+        },
+        {
+          "role": "user",
+          "message": "订单 200016"
+        }
+      ],
+      "first_hop": "business",
+      "expected_route": "business",
+      "clause_kind": null,
+      "fault": null,
+      "label_source": "policy",
+      "reviewed": true
+    }
+  ]
+}

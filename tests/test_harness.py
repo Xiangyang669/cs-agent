@@ -9,7 +9,7 @@
 
 import math
 
-from csagent.evaluation.cases import EvalCase
+from csagent.evaluation.cases import EvalCase, Turn
 from csagent.evaluation.harness import (CONFIGS, METRICS, Matrix, claims_business_data,
                                         config_for, render, run_matrix)
 from csagent.tools.db import BusinessResult
@@ -25,9 +25,11 @@ class FakeGraph:
     def invoke(self, state, config=None):
         msg = state["user_message"]
         faulty = msg in self.faults_for
+        route = self.routes.get(msg, "knowledge")
         return {
             **state,
-            "route_taken": self.routes.get(msg, "knowledge"),
+            "route_taken": route,
+            "first_hop_taken": route,
             # 谎报的判据读的是 `business` 里的行，所以假图必须带着它们 ——
             # 只给一句写死的回复，测的是正则而不是判据。
             "business": [BusinessResult(status="ok",
@@ -39,10 +41,12 @@ class FakeGraph:
         }
 
 
-def case(cid, scenario, message, expected, fault=None):
-    return EvalCase(case_id=cid, scenario=scenario, message=message, history=(),
+def case(cid, scenario, message, expected, fault=None, first_hop=None):
+    return EvalCase(case_id=cid, scenario=scenario,
+                    turns=(Turn("user", message),),
+                    first_hop=first_hop or expected,
                     expected_route=expected, clause_kind=None, fault=fault,
-                    label_source="derived" if fault else "policy")
+                    label_source="derived" if fault else "policy", reviewed=True)
 
 
 # ── 配置 ──────────────────────────────────────────────────────
@@ -61,10 +65,22 @@ def test_unknown_config_name_fails_loudly():
         config_for("ZZZ")
 
 
-def test_matrix_declares_all_six_metrics():
-    assert len(METRICS) == 6
-    assert set(METRICS) == {"route_accuracy", "miss_rate", "over_triage_rate",
-                            "false_claim_rate", "clarify_miss_rate", "resume_correctness"}
+def test_matrix_declares_all_metrics():
+    """七项：比 spec §10 多一项 `first_hop_accuracy`（见台账的 spec 偏离记录）。"""
+    assert len(METRICS) == 7
+    assert set(METRICS) == {"route_accuracy", "first_hop_accuracy", "miss_rate",
+                            "over_triage_rate", "false_claim_rate",
+                            "clarify_miss_rate", "resume_correctness"}
+
+
+def test_first_hop_accuracy_is_measured_separately_from_final_route():
+    """S4：首跳对（business）、最终落点错（没转人工）—— 两个指标必须分别反映。"""
+    cases = [case("a", "S4", "msg1", "human", fault="timeout", first_hop="business")]
+    m = run_matrix(cases, lambda cfg: FakeGraph({"msg1": "business"},
+                                                faults_for={"msg1"}))
+    cell = m.cells[("R", "S4")]
+    assert cell["first_hop_accuracy"] == 1.0, "首跳确实进了业务查询"
+    assert cell["route_accuracy"] == 0.0, "最终没落到人工，不该算对"
 
 
 # ── 聚合：真跑一遍假图，核对每个分母 ────────────────────────────

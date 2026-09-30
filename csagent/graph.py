@@ -28,6 +28,19 @@ NODE_HUMAN = Route.HUMAN.value
 NODE_REPLY = "reply"
 
 
+def _hop(ticket: Ticket, node: str) -> dict:
+    """记录本次去向，并在**第一次**写入时把它记成首跳。
+
+    首跳只能由第一个落地的分支节点写下；后续节点（比如业务查询失败后转人工）
+    **保留原值** —— 否则 S4 的首跳会被降级那一步覆盖掉，
+    而这两件事正是要分开测的。
+    """
+    return {
+        "route_taken": node,
+        "first_hop_taken": ticket.get("first_hop_taken") or node,
+    }
+
+
 def _triage_node(ticket: Ticket) -> dict:
     result = rules_triage(ticket.get("user_message", ""), ticket.get("history") or [])
     return {
@@ -44,7 +57,7 @@ def _ask_user_node(ticket: Ticket) -> dict:
     """追问 —— 信息不全时先停下来问，不猜。"""
     fields = "、".join(ticket.get("missing") or ()) or "必要信息"
     return {
-        "route_taken": NODE_ASK,
+        **_hop(ticket, NODE_ASK),
         "clarification_count": ticket.get("clarification_count", 0) + 1,
         "final_reply": f"为了帮您查询，请提供{fields}。",
     }
@@ -68,7 +81,7 @@ def _knowledge_node(subgraph):
         })
         return {
             "evidence": result.get("evidence", []),
-            "route_taken": NODE_KNOWLEDGE,
+            **_hop(ticket, NODE_KNOWLEDGE),
         }
 
     return node
@@ -96,7 +109,7 @@ def _business_node(conn_provider):
             "business": result.get("business"),
             "faults_hit": result.get("faults_hit", []),
             "degraded": result.get("degraded", False),
-            "route_taken": NODE_BUSINESS,
+            **_hop(ticket, NODE_BUSINESS),
         }
 
     return node
@@ -105,7 +118,7 @@ def _business_node(conn_provider):
 def _human_node(ticket: Ticket) -> dict:
     """转人工的占位节点 —— Task 11 会被真正的「挂起-恢复」替换。"""
     return {
-        "route_taken": NODE_HUMAN,
+        **_hop(ticket, NODE_HUMAN),
         "handoff_reason": "分流判定为高风险",
         "final_reply": reply_agent.HUMAN_REPLY,
     }
@@ -167,11 +180,11 @@ def build_graph(retriever, checkpointer=None, conn=None):
     return builder.compile(checkpointer=checkpointer)
 
 
-def initial_state(message: str, config) -> Ticket:
+def initial_state(message: str, config, history: list[str] | None = None) -> Ticket:
     """一次运行开始时的状态 —— 只放输入与默认值，不放结论。"""
     return {
         "user_message": message,
-        "history": [],
+        "history": list(history or []),
         "config": config,
         "evidence": [],
         "faults_hit": [],
@@ -181,13 +194,16 @@ def initial_state(message: str, config) -> Ticket:
     }
 
 
-def run_ticket(graph, message: str, config, thread_id: str = "default") -> Ticket:
+def run_ticket(graph, message: str, config, thread_id: str = "default",
+               history: list[str] | None = None) -> Ticket:
     """跑一张工单，返回最终状态。
+
+    `history` 是**此前用户说过的话**：订单号可能出现在上一轮，分流要看得见它。
 
     `thread_id` 在没有检查点时被忽略；Task 11 接上检查点后它才真正起作用，
     但调用方的写法不必因此改变。
     """
     return graph.invoke(
-        initial_state(message, config),
+        initial_state(message, config, history),
         config={"configurable": {"thread_id": thread_id}},
     )

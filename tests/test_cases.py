@@ -82,8 +82,41 @@ def test_multi_turn_cases_are_completable(cases):
     assert all(c.expected_route != "ask_user" for c in s6)
 
 
-def test_cases_are_not_reviewed_by_default(cases):
-    assert all(c.reviewed is False for c in cases)
+def test_review_status_is_recorded_per_case(cases):
+    """复核状态必须逐条记录 —— 报告里「多少条经过人工复核」是算出来的，不是猜的。"""
+    assert all(isinstance(c.reviewed, bool) for c in cases)
+
+
+def test_reviewed_count_is_reported(cases):
+    """这批样本已由用户逐条复核（2026-09-30 确认）。数量要能算出来。"""
+    assert sum(1 for c in cases if c.reviewed) == len(cases)
+
+
+def test_first_hop_and_final_route_diverge_only_on_s4(cases):
+    """两条路由轴的分离只发生在业务故障这一类上。
+
+    首跳仍是业务查询（该查就得查），最终落人工（查不到要升级）。
+    若别处也开始分歧，说明 schema 被谁改坏了 —— 那会让
+    「路由错了」和「降级错了」重新混在一起。
+    """
+    diverging = {c.scenario for c in cases if c.first_hop != c.expected_route}
+    assert diverging == {"S4"}
+
+
+def test_multi_turn_cases_replay_a_full_conversation(cases):
+    """S6 是**真的对话**：用户 → 助手追问 → 用户补信息。"""
+    s6 = [c for c in cases if c.scenario == "S6"]
+    assert s6
+    for c in s6:
+        roles = [t.role for t in c.turns]
+        assert roles == ["user", "assistant", "user"], c.case_id
+
+
+def test_assistant_turns_do_not_leak_into_history(cases):
+    """助手那句「请提供您的订单号」不能进 history —— 口径判的是用户说了什么。"""
+    s6 = [c for c in cases if c.scenario == "S6"][0]
+    assert all("请提供" not in h for h in s6.history)
+    assert len(s6.history) == 1
 
 
 def test_generation_is_deterministic(cases):
