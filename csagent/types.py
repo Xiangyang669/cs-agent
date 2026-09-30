@@ -4,9 +4,10 @@
 改任意一个，评测集里所有标签的含义都会跟着变 —— 那不是一个重命名。
 """
 
-from dataclasses import dataclass
+import operator
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import TypedDict
+from typing import Annotated, TypedDict
 
 from csagent.config import DEFAULT_TOP_K
 
@@ -96,6 +97,20 @@ class TriageResult:
 
 
 @dataclass(frozen=True)
+class TraceEvent:
+    """一步的审计记录。
+
+    ⚠️ `reason` 不是可选的装饰。「走了哪条路」是日志，
+       「**凭什么**走这条路」才是审计 —— 少了后者，出问题时还是得回去读代码。
+    """
+
+    node: str
+    decision: str
+    reason: str
+    detail: dict = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class RunConfig:
     """一次运行的配置 —— 也就是评测矩阵的「行」。
 
@@ -150,7 +165,9 @@ class Ticket(TypedDict, total=False):
     handoff_reason: str
     handoff_context: str
     clarification_count: int
-    trace: list[object]  # Task 16 起改为 list[TraceEvent]
+    # ⚠️ 必须带 reducer。不带的话后一个节点会把前一个的轨迹**覆盖**掉，
+    #    最后只剩最后一步 —— 而审计要的正是全过程。
+    trace: Annotated[list[TraceEvent], operator.add]
 
     # ── 输出 ──
     human_reply: str

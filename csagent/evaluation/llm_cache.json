@@ -35,6 +35,24 @@
     "needs_clarification": true,
     "risk_level": "high"
   },
+  "本轮用户消息：\n一直没解决，我很失望": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "risk",
+    "matched_clauses": [
+      "soft:退款争议"
+    ],
+    "missing": [
+      "账号",
+      "订单号",
+      "课程名"
+    ],
+    "needs_clarification": true,
+    "risk_level": "high"
+  },
   "本轮用户消息：\n下载课件怎么操作？": {
     "extracted": {
       "订单号": "",
@@ -76,6 +94,24 @@
     "missing": [
       "账号",
       "订单号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "high"
+  },
+  "本轮用户消息：\n亏了这么多，太让人失望": {
+    "extracted": {
+      "订单号": "",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "refund",
+    "matched_clauses": [
+      "soft:退款争议"
+    ],
+    "missing": [
+      "账号",
+      "订单号",
+      "课程名"
     ],
     "needs_clarification": true,
     "risk_level": "high"
@@ -1372,5 +1408,219 @@
     ],
     "needs_clarification": true,
     "risk_level": "high"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200002，你查一下": {
+    "extracted": {
+      "订单号": "200002",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200004，谢谢": {
+    "extracted": {
+      "订单号": "200004",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200006": {
+    "extracted": {
+      "订单号": "200006",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200008": {
+    "extracted": {
+      "订单号": "200008",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200010": {
+    "extracted": {
+      "订单号": "200010",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200012": {
+    "extracted": {
+      "订单号": "200012",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200014": {
+    "extracted": {
+      "订单号": "200014",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200016": {
+    "extracted": {
+      "订单号": "200016",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [],
+    "needs_clarification": false,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200001，帮我看看": {
+    "extracted": {
+      "订单号": "200001",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200003": {
+    "extracted": {
+      "订单号": "200003",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200005": {
+    "extracted": {
+      "订单号": "200005",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200007": {
+    "extracted": {
+      "订单号": "200007",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200009": {
+    "extracted": {
+      "订单号": "200009",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200011": {
+    "extracted": {
+      "订单号": "200011",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200013": {
+    "extracted": {
+      "订单号": "200013",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
+  },
+  "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200015": {
+    "extracted": {
+      "订单号": "200015",
+      "课程名": "",
+      "账号": ""
+    },
+    "intent": "order",
+    "matched_clauses": [],
+    "missing": [
+      "账号"
+    ],
+    "needs_clarification": true,
+    "risk_level": "low"
   }
 }

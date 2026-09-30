@@ -19,9 +19,10 @@ from csagent import config
 from csagent.agents.triage import default_triage
 from csagent.config import DEFAULT_TOP_K
 from csagent.faults import FaultPolicy
+from csagent.observability import record
 from csagent.routing import (clarification_exhausted, hop_payload,
                              route_after_guardrail, route_after_triage)
-from csagent.types import RiskLevel, Route, Ticket
+from csagent.types import RiskLevel, Route, Ticket, TraceEvent
 
 # 节点名与 Route 的取值刻意保持一致 —— 条件边的映射因此是恒等的，
 # 少一层「名字 → 名字」的翻译就少一处能写错的地方。
@@ -44,6 +45,9 @@ def _guardrail_node(ticket: Ticket) -> dict:
     return {
         "handoff_to_human": verdict.handoff,
         "handoff_reason": verdict.reason,
+        **record(ticket, NODE_GUARDRAIL,
+                 decision="handoff" if verdict.handoff else "pass",
+                 reason=verdict.reason, code=verdict.reason_code),
     }
 
 
@@ -77,6 +81,15 @@ def _triage_payload(result, ticket: Ticket) -> dict:
         payload["handoff_reason"] = (
             f"追问已达上限（{config.MAX_CLARIFICATIONS} 轮）仍未获得必需字段"
         )
+
+    payload.update(record(
+        payload, NODE_TRIAGE,
+        decision=result.intent.value,
+        reason=("命中高风险条款" if result.risk_level is RiskLevel.HIGH
+                else f"意图判为 {result.intent.value}"),
+        risk=result.risk_level.value,
+        clauses="、".join(m.clause_id for m in result.matched_clauses) or "无",
+    ))
     return payload
 
 
@@ -87,6 +100,8 @@ def _ask_user_node(ticket: Ticket) -> dict:
         **hop_payload(ticket, NODE_ASK),
         "clarification_count": ticket.get("clarification_count", 0) + 1,
         "final_reply": f"为了帮您查询，请提供{fields}。",
+        **record(ticket, NODE_ASK, decision="ask_user",
+                 reason="信息不全，先停下来问，不猜", fields=fields),
     }
 
 
@@ -106,9 +121,14 @@ def _knowledge_node(subgraph):
             "rounds": 0,
             "sufficient": False,
         })
+        evidence = result.get("evidence", [])
         return {
-            "evidence": result.get("evidence", []),
+            "evidence": evidence,
             **hop_payload(ticket, NODE_KNOWLEDGE),
+            **record(ticket, NODE_KNOWLEDGE, decision="knowledge",
+                     reason=(f"检索到 {len(evidence)} 条证据" if evidence
+                             else "检索为空，交给守卫处理"),
+                     sufficient=result.get("sufficient"), rounds=result.get("rounds")),
         }
 
     return node
@@ -132,11 +152,16 @@ def _business_node(conn_provider):
             "faults_hit": list(ticket.get("faults_hit") or []),
             "degraded": False,
         })
+        faults = list(result.get("faults_hit", []))
         return {
             "business": result.get("business"),
-            "faults_hit": result.get("faults_hit", []),
+            "faults_hit": faults,
             "degraded": result.get("degraded", False),
             **hop_payload(ticket, NODE_BUSINESS),
+            **record(ticket, NODE_BUSINESS, decision="business",
+                     reason=(f"业务系统异常：{'、'.join(faults)}" if faults
+                             else "已查询业务系统"),
+                     faults="、".join(faults) or "无"),
         }
 
     return node
@@ -148,14 +173,21 @@ def _human_node(ticket: Ticket) -> dict:
     与 `handoff_node` 的区别不是「跳过了一步」，而是这套配置里根本没有挂起能力 ——
     两种配置是两张不同的图。
     """
+    reason = ticket.get("handoff_reason") or "分流判定为高风险"
     return {
         **hop_payload(ticket, NODE_HUMAN),
-        "handoff_reason": ticket.get("handoff_reason") or "分流判定为高风险",
+        "handoff_reason": reason,
+        **record(ticket, NODE_HUMAN, decision="human", reason=reason),
     }
 
 
 def _reply_node(ticket: Ticket) -> dict:
-    return {"final_reply": reply_agent.compose_reply(ticket)}
+    text = reply_agent.compose_reply(ticket)
+    return {
+        "final_reply": text,
+        **record(ticket, NODE_REPLY, decision="reply",
+                 reason="按当前证据作答；没有证据时不硬答"),
+    }
 
 
 def _default_conn_provider():
@@ -293,6 +325,18 @@ def _mark_suspended(graph, thread_id: str, result: dict) -> dict:
         "first_hop_taken": result.get("first_hop_taken") or pending[0],
         "handoff_context": result.get("handoff_context") or handoff_context_of(result),
         "suspended": True,
+        # 挂起的节点没机会写轨迹（它根本没返回），所以在这里替它记一笔 ——
+        # 否则「为什么停下来等人」这件事在审计里是一片空白。
+        #
+        # ⚠️ 这里必须**显式拼接**，不能直接赋一个单元素列表。
+        #    `trace` 的 reducer 只在**图内**生效；这里返回的是一个普通 dict，
+        #    赋值就是覆盖 —— 之前累积的整条轨迹会被这一笔顶掉，
+        #    而症状是「只看得见最后一步」，很容易被当成「节点没写轨迹」。
+        "trace": list(result.get("trace") or []) + [
+            TraceEvent(node=pending[0], decision="suspend",
+                       reason=result.get("handoff_reason") or "需要人工介入",
+                       detail={"context": "已生成交接摘要"})
+        ],
     }
 
 
