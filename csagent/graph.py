@@ -10,7 +10,9 @@
 from langgraph.graph import END, START, StateGraph
 
 from csagent.agents import reply as reply_agent
+from csagent.agents.knowledge import build_knowledge_subgraph
 from csagent.agents.triage_rules import rules_triage
+from csagent.config import DEFAULT_TOP_K
 from csagent.routing import route_after_triage
 from csagent.types import Route, Ticket
 
@@ -46,12 +48,26 @@ def _ask_user_node(ticket: Ticket) -> dict:
     }
 
 
-def _knowledge_node(retriever):
+def _knowledge_node(subgraph):
+    """知识检索节点 —— 对外只是一个节点，内部是带判断循环的子图。
+
+    主图不关心子图内部走了几轮；`evidence` 与 `sufficient` 是它交出来的全部。
+    """
+
     def node(ticket: Ticket) -> dict:
         config = ticket.get("config")
-        k = config.k if config else 5
-        evidence = retriever.retrieve(ticket.get("user_message", ""), k)
-        return {"evidence": evidence, "route_taken": NODE_KNOWLEDGE}
+        k = config.k if config else DEFAULT_TOP_K
+        result = subgraph.invoke({
+            "query": ticket.get("user_message", ""),
+            "k": k,
+            "evidence": [],
+            "rounds": 0,
+            "sufficient": False,
+        })
+        return {
+            "evidence": result.get("evidence", []),
+            "route_taken": NODE_KNOWLEDGE,
+        }
 
     return node
 
@@ -87,7 +103,7 @@ def build_graph(retriever, checkpointer=None):
 
     builder.add_node(NODE_TRIAGE, _triage_node)
     builder.add_node(NODE_ASK, _ask_user_node)
-    builder.add_node(NODE_KNOWLEDGE, _knowledge_node(retriever))
+    builder.add_node(NODE_KNOWLEDGE, _knowledge_node(build_knowledge_subgraph(retriever)))
     builder.add_node(NODE_BUSINESS, _business_node)
     builder.add_node(NODE_HUMAN, _human_node)
     builder.add_node(NODE_REPLY, _reply_node)
