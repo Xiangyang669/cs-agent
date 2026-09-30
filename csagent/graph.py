@@ -13,7 +13,7 @@ from langgraph.types import Command
 from csagent.agents import reply as reply_agent
 from csagent.agents.business import build_business_subgraph
 from csagent.agents.guardrail import evaluate
-from csagent.agents.handoff import handoff_node
+from csagent.agents.handoff import handoff_context_of, handoff_node
 from csagent.agents.knowledge import build_knowledge_subgraph
 from csagent import config
 from csagent.agents.triage import default_triage
@@ -283,10 +283,15 @@ def _mark_suspended(graph, thread_id: str, result: dict) -> dict:
         return result
     # 待执行的节点就是工单此刻所在的位置。`first_hop_taken` 也一并补上：
     # 分流直接转人工时，接管节点**就是**首跳，而它挂起了没机会写。
+    #
+    # ⚠️ 交接摘要同理。接管节点算好了它、交给了挂起原语，然后**就挂起了** ——
+    #    状态里从来没有它。而「转人工要带上摘要，别让用户重讲一遍」是硬要求，
+    #    所以必须在这里补。好在 `handoff_context_of` 是纯函数，重算一遍结果相同。
     return {
         **result,
         "route_taken": pending[0],
         "first_hop_taken": result.get("first_hop_taken") or pending[0],
+        "handoff_context": result.get("handoff_context") or handoff_context_of(result),
         "suspended": True,
     }
 
