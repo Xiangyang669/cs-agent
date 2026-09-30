@@ -153,11 +153,26 @@ def lookup_raw(conn: sqlite3.Connection, sql: str, params=()) -> BusinessResult:
     return BusinessResult(status=STATUS_OK, rows=rows, detail=f"{len(rows)} 条")
 
 
+def is_restricted(conn: sqlite3.Connection, account: str) -> bool:
+    """该账户是否处于受限状态。
+
+    受限与「确实没有」是两件事，而且**成因不同**：受限是风控/权限问题，
+    「没有」是业务事实。上层必须能分开，否则会把受限误报成「你没买过」。
+    """
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM restricted_accounts WHERE account = ?", (account,)
+        ).fetchone()
+    except sqlite3.Error:
+        return False
+    return row is not None
+
+
 def close(conn: sqlite3.Connection) -> None:
     conn.close()
 
 
 __all__ = [
     "BusinessResult", "STATUS_OK", "STATUS_NOT_FOUND", "STATUS_NO_PERMISSION",
-    "STATUS_ERROR", "SCHEMA", "build_db", "connect", "lookup_raw", "close",
+    "STATUS_ERROR", "SCHEMA", "build_db", "connect", "lookup_raw", "is_restricted", "close",
 ]
