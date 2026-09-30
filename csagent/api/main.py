@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from csagent.evaluation.harness import config_for
-from csagent.graph import resume_ticket, run_ticket
+from csagent.graph import continue_ticket, resume_ticket, run_ticket
 
 DEFAULT_CONFIG = "L+G"
 
@@ -61,7 +61,24 @@ def create_app(graph) -> FastAPI:
             return _error(400, str(err))
 
         thread_id = req.thread_id or f"t-{abs(hash(req.message)) % 10**8:08d}"
-        ticket = run_ticket(graph, req.message, config, thread_id=thread_id)
+        existing = _snapshot(graph, thread_id)
+
+        # ⚠️ 挂起中的会话**不能被一条新消息重开**。重开会把原挂起上下文
+        #    （用户当初为什么被转人工）顶掉 —— 他的诉求就此消失。
+        #    独立评审复现过这条：用户等不及又发一句，转人工的理由就没了。
+        if existing is not None and getattr(existing, "next", ()):
+            return _error(409, "该会话正在等待人工接管，请先调用 /ticket/{thread_id}/resume；"
+                               "此时发新消息会丢弃已有的转人工上下文")
+
+        # ⚠️ 已有会话**必须续跑**，不能重开。`run_ticket` 会把
+        #    `clarification_count` 与 `history` 重置 —— 于是追问次数永远停在 1、
+        #    上限永远碰不到，防无限追问在唯一对外的入口上被静默废掉。
+        #    （同样是独立评审查出来的：图层面是对的，服务层没接上。）
+        if existing is not None and existing.values:
+            ticket = continue_ticket(graph, req.message, thread_id=thread_id,
+                                     history=_history_of(existing), config=config)
+        else:
+            ticket = run_ticket(graph, req.message, config, thread_id=thread_id)
         return _render(thread_id, ticket)
 
     @app.post("/ticket/{thread_id}/resume")
@@ -72,6 +89,23 @@ def create_app(graph) -> FastAPI:
         return _render(thread_id, ticket)
 
     return app
+
+
+def _snapshot(graph, thread_id: str):
+    """取会话的检查点快照。没有检查点（或线程不存在）时返回 None。"""
+    try:
+        return graph.get_state({"configurable": {"thread_id": thread_id}})
+    except Exception:  # noqa: BLE001 —— 没有检查点的图问不了，就当新会话
+        return None
+
+
+def _history_of(snapshot) -> list[str]:
+    """把此前用户说过的话带进下一轮 —— 订单号可能出现在上一轮。"""
+    previous = (snapshot.values or {}).get("user_message")
+    history = list((snapshot.values or {}).get("history") or [])
+    if previous:
+        history.append(previous)
+    return history
 
 
 def _error(status: int, message: str):

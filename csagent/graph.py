@@ -208,6 +208,39 @@ def _default_conn_provider():
     return provider
 
 
+def _path_of(conn) -> str | None:
+    """从一个 sqlite 连接反查它指向的文件。内存库返回 None。"""
+    try:
+        for _seq, name, file in conn.execute("PRAGMA database_list").fetchall():
+            if name == "main":
+                return file or None
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def _conn_provider(conn):
+    """按需开新连接。
+
+    ⚠️ **绝不能复用调用方给的连接。** SQLite 连接是**线程绑定**的，而图会在
+       别的线程上跑节点 —— 复用会抛 `SQLite objects created in a thread can
+       only be used in that same thread`，然后被降级机制静默吞成一个 error，
+       最后表现为「业务查询查不到，转人工」。
+
+       默认路径本来就是每次现开连接来防这件事，但「显式传连接」这条路
+       绕过了那层保护。项目 1 在这里栽过一次（D5），这是同一个坑的另一条入口。
+    """
+    if conn is None:
+        return _default_conn_provider()
+
+    path = _path_of(conn)
+    if path is None:  # 内存库：没法另开连接，只能将就
+        return lambda: conn
+    from csagent.tools.db import connect
+
+    return lambda: connect(path)
+
+
 def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True,
                 hitl: bool = False, triage=None):
     """按配置构建一张客服图。
@@ -224,7 +257,7 @@ def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True,
     if hitl and checkpointer is None:
         raise ValueError("hitl=True 需要 checkpointer：挂起依赖持久化，缺了它挂不起来")
 
-    conn_provider = _default_conn_provider() if conn is None else (lambda: conn)
+    conn_provider = _conn_provider(conn)
     strategy = triage if triage is not None else default_triage()
 
     builder = StateGraph(Ticket)
@@ -341,7 +374,7 @@ def _mark_suspended(graph, thread_id: str, result: dict) -> dict:
 
 
 def continue_ticket(graph, message: str, thread_id: str = "default",
-                    history: list[str] | None = None) -> Ticket:
+                    history: list[str] | None = None, config=None) -> Ticket:
     """在**已有会话**上再走一轮 —— 只喂新消息，**不重置状态**。
 
     ⚠️ 与 `run_ticket` 的唯一区别就是「不重置」，而这个区别是全部意义所在：
@@ -358,6 +391,8 @@ def continue_ticket(graph, message: str, thread_id: str = "default",
     }
     if history is not None:
         payload["history"] = list(history)
+    if config is not None:
+        payload["config"] = config
 
     result = graph.invoke(payload, config={"configurable": {"thread_id": thread_id}})
     # ⚠️ 和 `run_ticket` 一样要做挂起回填。漏了这一步，续跑时若转人工挂起，
