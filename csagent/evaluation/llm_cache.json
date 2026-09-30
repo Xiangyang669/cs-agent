@@ -5,16 +5,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "faq",
+    "intent": "risk",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n一直没人管，问题一直没解决": {
@@ -23,16 +19,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "risk",
+    "intent": "faq",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n一直没解决，我很失望": {
@@ -41,16 +33,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "risk",
+    "intent": "faq",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n下载课件怎么操作？": {
@@ -75,10 +63,8 @@
     "matched_clauses": [
       "H6"
     ],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n为什么重复扣款": {
@@ -87,15 +73,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "refund",
+    "intent": "risk",
     "matched_clauses": [
       "H3"
     ],
-    "missing": [
-      "账号",
-      "订单号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n亏了这么多，太让人失望": {
@@ -104,16 +87,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "refund",
+    "intent": "risk",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n优惠券要什么条件？": {
@@ -150,12 +129,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n你们泄露了我的个人信息": {
@@ -168,12 +143,8 @@
     "matched_clauses": [
       "H6"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n你们这是诈骗吗": {
@@ -184,14 +155,10 @@
     },
     "intent": "risk",
     "matched_clauses": [
-      "H4"
+      "H2"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n你们这服务真是让人无语，我很失望": {
@@ -200,16 +167,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "risk",
+    "intent": "faq",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n你们这样做太让人失望了": {
@@ -222,12 +185,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n太让人失望了，我考虑要不要继续用": {
@@ -240,12 +199,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n如何修改手机号？": {
@@ -322,9 +277,7 @@
   },
   "本轮用户消息：\n帮我查一下订单 100002 的支付": {
     "extracted": {
-      "订单号": "100002",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100002"
     },
     "intent": "order",
     "matched_clauses": [],
@@ -334,9 +287,7 @@
   },
   "本轮用户消息：\n帮我查一下订单 100007 的支付": {
     "extracted": {
-      "订单号": "100007",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100007"
     },
     "intent": "order",
     "matched_clauses": [],
@@ -358,14 +309,14 @@
   },
   "本轮用户消息：\n帮我查一下订单 100017 的支付": {
     "extracted": {
-      "订单号": "100017"
+      "订单号": "100017",
+      "课程名": "",
+      "账号": ""
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n帮我查我的课程权限": {
@@ -377,8 +328,7 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
-      "订单号或课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "low"
@@ -392,7 +342,7 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "low"
@@ -406,7 +356,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -421,7 +370,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -449,12 +397,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我买了会员但没有权益": {
@@ -466,7 +410,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -481,9 +424,7 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
-      "订单号",
-      "课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "low"
@@ -494,16 +435,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "risk",
+    "intent": "faq",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我付了款但订单没显示": {
@@ -515,7 +452,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -530,9 +466,7 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
-      "订单号",
-      "课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "low"
@@ -547,12 +481,8 @@
     "matched_clauses": [
       "H5"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我怀疑被骗了": {
@@ -565,12 +495,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我的会员到期时间不对": {
@@ -582,7 +508,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -597,7 +522,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -612,18 +536,14 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
-      "订单号",
-      "课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "low"
   },
   "本轮用户消息：\n我的订单 100004 退款到哪了": {
     "extracted": {
-      "订单号": "100004",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100004"
     },
     "intent": "refund",
     "matched_clauses": [],
@@ -638,18 +558,14 @@
       "账号": ""
     },
     "intent": "refund",
-    "matched_clauses": [
-      "H1"
-    ],
+    "matched_clauses": [],
     "missing": [],
     "needs_clarification": false,
-    "risk_level": "high"
+    "risk_level": "low"
   },
   "本轮用户消息：\n我的订单 100014 退款到哪了": {
     "extracted": {
-      "订单号": "100014",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100014"
     },
     "intent": "refund",
     "matched_clauses": [],
@@ -659,9 +575,7 @@
   },
   "本轮用户消息：\n我的订单 100019 退款到哪了": {
     "extracted": {
-      "订单号": "100019",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100019"
     },
     "intent": "refund",
     "matched_clauses": [],
@@ -678,8 +592,7 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "订单号",
-      "具体问题描述"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "low"
@@ -693,7 +606,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -705,14 +617,10 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "order",
+    "intent": "faq",
     "matched_clauses": [],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n我的账单对不上": {
@@ -724,7 +632,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -736,13 +643,10 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "order",
+    "intent": "faq",
     "matched_clauses": [],
-    "missing": [
-      "账号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n我的账号被封了": {
@@ -755,10 +659,8 @@
     "matched_clauses": [
       "H6"
     ],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我的账号被锁死了": {
@@ -771,10 +673,8 @@
     "matched_clauses": [
       "H6"
     ],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我的退款到哪一步了": {
@@ -786,7 +686,6 @@
     "intent": "refund",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -802,12 +701,8 @@
     "matched_clauses": [
       "H6"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我真的很无奈，这个系统太难用了": {
@@ -820,12 +715,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我真的气到了": {
@@ -838,12 +729,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我要找人工": {
@@ -856,12 +743,8 @@
     "matched_clauses": [
       "H1"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我要找律师": {
@@ -874,12 +757,8 @@
     "matched_clauses": [
       "H5"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我要投诉你们": {
@@ -892,12 +771,8 @@
     "matched_clauses": [
       "H1"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我要查一下我的订单": {
@@ -909,7 +784,6 @@
     "intent": "order",
     "matched_clauses": [],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -925,12 +799,8 @@
     "matched_clauses": [
       "H5"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n我这个月被重复扣费了": {
@@ -944,7 +814,6 @@
       "H3"
     ],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -1011,7 +880,6 @@
       "H3"
     ],
     "missing": [
-      "账号",
       "订单号"
     ],
     "needs_clarification": true,
@@ -1035,7 +903,7 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "risk",
+    "intent": "faq",
     "matched_clauses": [
       "H1"
     ],
@@ -1081,37 +949,27 @@
   },
   "本轮用户消息：\n订单 100003 为什么还是锁着": {
     "extracted": {
-      "订单号": "100003",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100003"
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n订单 100005 能退吗": {
     "extracted": {
-      "订单号": "100005",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100005"
     },
     "intent": "refund",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n订单 100006 现在什么状态": {
     "extracted": {
-      "订单号": "100006",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100006"
     },
     "intent": "order",
     "matched_clauses": [],
@@ -1121,23 +979,17 @@
   },
   "本轮用户消息：\n订单 100008 为什么还是锁着": {
     "extracted": {
-      "订单号": "100008",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100008"
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n订单 100010 能退吗": {
     "extracted": {
-      "订单号": "100010",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100010"
     },
     "intent": "refund",
     "matched_clauses": [],
@@ -1147,9 +999,7 @@
   },
   "本轮用户消息：\n订单 100011 现在什么状态": {
     "extracted": {
-      "订单号": "100011",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100011"
     },
     "intent": "order",
     "matched_clauses": [],
@@ -1165,17 +1015,13 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n订单 100015 能退吗": {
     "extracted": {
-      "订单号": "100015",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100015"
     },
     "intent": "refund",
     "matched_clauses": [],
@@ -1185,16 +1031,12 @@
   },
   "本轮用户消息：\n订单 100016 现在什么状态": {
     "extracted": {
-      "订单号": "100016",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100016"
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n订单 100018 为什么还是锁着": {
@@ -1205,17 +1047,13 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "本轮用户消息：\n订单 100020 能退吗": {
     "extracted": {
-      "订单号": "100020",
-      "课程名": "",
-      "账号": ""
+      "订单号": "100020"
     },
     "intent": "refund",
     "matched_clauses": [],
@@ -1233,12 +1071,8 @@
     "matched_clauses": [
       "H1"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n证书申请的规则是什么？": {
@@ -1263,12 +1097,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n这件事交给法务处理": {
@@ -1281,12 +1111,8 @@
     "matched_clauses": [
       "H5"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n这体验也太坑了": {
@@ -1299,12 +1125,8 @@
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n这明显是欺诈": {
@@ -1317,12 +1139,8 @@
     "matched_clauses": [
       "H4"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n这是退款争议，我不接受": {
@@ -1333,12 +1151,11 @@
     },
     "intent": "refund",
     "matched_clauses": [
-      "H1"
+      "H1",
+      "H7"
     ],
     "missing": [
-      "账号",
-      "订单号",
-      "课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "high"
@@ -1349,16 +1166,12 @@
       "课程名": "",
       "账号": ""
     },
-    "intent": "risk",
+    "intent": "faq",
     "matched_clauses": [
       "soft:退款争议"
     ],
-    "missing": [
-      "账号",
-      "订单号",
-      "课程名"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "high"
   },
   "本轮用户消息：\n这课我死活上不了，钱白花了": {
@@ -1372,9 +1185,7 @@
       "soft:退款争议"
     ],
     "missing": [
-      "账号",
-      "订单号",
-      "课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "high"
@@ -1402,9 +1213,7 @@
       "soft:退款争议"
     ],
     "missing": [
-      "账号",
-      "订单号",
-      "课程名"
+      "订单号"
     ],
     "needs_clarification": true,
     "risk_level": "high"
@@ -1417,10 +1226,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200004，谢谢": {
@@ -1455,10 +1262,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200010": {
@@ -1493,10 +1298,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单 200016": {
@@ -1513,16 +1316,12 @@
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200001，帮我看看": {
     "extracted": {
-      "订单号": "200001",
-      "课程名": "",
-      "账号": ""
+      "订单号": "200001"
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200003": {
@@ -1533,10 +1332,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200005": {
@@ -1547,10 +1344,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200007": {
@@ -1561,10 +1356,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200009": {
@@ -1575,10 +1368,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200011": {
@@ -1589,10 +1380,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200013": {
@@ -1603,10 +1392,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   },
   "此前用户说过：\n- 我要查一下我的订单\n\n本轮用户消息：\n订单号 200015": {
@@ -1617,10 +1404,8 @@
     },
     "intent": "order",
     "matched_clauses": [],
-    "missing": [
-      "账号"
-    ],
-    "needs_clarification": true,
+    "missing": [],
+    "needs_clarification": false,
     "risk_level": "low"
   }
 }

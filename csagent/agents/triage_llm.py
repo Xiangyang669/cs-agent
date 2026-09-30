@@ -12,6 +12,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from csagent.config import REQUIRED_FIELDS
 from csagent.llm import LlmClient
 from csagent.types import ClauseKind, ClauseMatch, Intent, RiskLevel, TriageResult
 
@@ -22,7 +23,14 @@ SYSTEM_PROMPT = """你是企业客服系统的「问题分流与补信息助手�
    refund（问我的退款）、risk（高风险，须转人工）
 2. 抽取关键字段：账号、订单号、课程名。**抽不到就留空，绝不编造**
 3. 字段不足时：不猜测、不给结论，把缺失项列进 missing，needs_clarification 置真
-4. 命中以下任一情形标为高风险：
+4. **必需字段只有一个：订单号**（只对 order / refund 两类）。
+   账号、课程名都不是必需的 —— 不要因为它们缺失就要求用户补，
+   也不要因此把 needs_clarification 置真。用户没给订单号就该查得到，
+   系统有别的办法定位他的账户。
+5. 只有 order / refund 两类在**订单号**缺失时才需要追问：
+   把缺失项列进 missing、needs_clarification 置真。
+   其余情形（faq，或字段齐全的 order/refund）needs_clarification 一律为假。
+6. 命中以下任一情形标为高风险：
    - 明确要求人工、投诉、重复扣费、欺诈、法务、隐私、封号、退款争议（这些是硬条款，
      在 matched_clauses 里写 H1..H7）
    - 语气里透着强烈不满、失望、被坑的感觉，或暗示要退钱但没提「退款」二字
@@ -73,21 +81,24 @@ def llm_triage(message: str, history: list[str] | None = None,
                                TriagePayload)
     payload = TriagePayload.model_validate(raw)
 
-    # 自相矛盾的输出不能放行：说「需要追问」却一个缺失字段都不列，
-    # 下游会追问一句「请提供。」—— 一句没有信息的话。
-    if payload.needs_clarification and not payload.missing:
-        raise ValueError("模型说需要追问，却没给出任何缺失字段")
-
     # ⚠️ 模型抽不到字段时常常回一个**空字符串**而不是省略它。
     #    空串与「没抽到」在下游是两码事：前者会让「字段是否齐全」以为已经有值，
     #    于是不再追问，最后拿一个空订单号去查库。
     extracted = {k: v for k, v in payload.extracted.items() if str(v).strip()}
 
+    # ⚠️ **「什么算缺失」由产品规定，不由模型决定**（口径 §4：必需字段只有订单号）。
+    #    实测过：模型会把「账号」也列成缺失，于是明明抽到了订单号仍判「需要追问」，
+    #    路由去了追问而不是业务查询。模型是忠实执行了指令 —— 错的是层次划分。
+    intent = Intent(payload.intent)
+    required = REQUIRED_FIELDS.get(intent.value, ())
+    missing = tuple(f for f in payload.missing if f in required)
+
     return TriageResult(
-        intent=Intent(payload.intent),
+        intent=intent,
         extracted=extracted,
-        missing=tuple(payload.missing),
+        missing=missing,
         risk_level=RiskLevel(payload.risk_level),
         matched_clauses=tuple(_to_clause(c) for c in payload.matched_clauses),
-        needs_clarification=payload.needs_clarification,
+        # 追问与否只看**过滤之后**还缺不缺必需字段，不采信模型的布尔值。
+        needs_clarification=bool(missing),
     )

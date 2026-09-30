@@ -110,12 +110,44 @@ def test_non_blank_extracted_values_survive():
     assert out.extracted == {"订单号": "200001"}
 
 
-def test_inconsistent_payload_is_rejected():
-    """说「需要追问」却没给缺失字段 —— 这是自相矛盾，不能放行。"""
+def test_non_required_missing_fields_do_not_trigger_a_question():
+    """模型把「账号」也列成缺失 —— **不该因此追问**。
+
+    口径 §4：必需字段只有订单号。实测过这一条：模型会忠实地要求用户补账号，
+    于是明明抽到了订单号仍判「需要追问」，路由去了追问而不是业务查询。
+    什么算缺失是**产品规定**，不能由模型决定。
+    """
+    stub = StubLlm(replies={"订单号 200001": payload(
+        intent="order", extracted={"订单号": "200001"},
+        missing=["账号", "课程名"], needs_clarification=True)})
+    out = llm_triage("订单号 200001", [], stub)
+    assert out.missing == ()
+    assert out.needs_clarification is False
+
+
+def test_missing_order_id_still_triggers_a_question():
+    """必需的字段缺了，仍然要追问 —— 别把上一条修过头。"""
+    stub = StubLlm(replies={"我要查订单": payload(
+        intent="order", missing=["订单号"], needs_clarification=True)})
+    out = llm_triage("我要查订单", [], stub)
+    assert out.missing == ("订单号",)
+    assert out.needs_clarification is True
+
+
+def test_model_boolean_is_not_trusted_over_the_required_field_set():
+    """模型说「需要追问」却一个必需字段都没缺 —— 以产品规定为准，不追问。"""
     stub = StubLlm(replies={"我要查订单": payload(intent="order", missing=[],
                                                 needs_clarification=True)})
-    with pytest.raises(ValueError):
-        llm_triage("我要查订单", [], stub)
+    out = llm_triage("我要查订单", [], stub)
+    assert out.needs_clarification is False
+
+
+def test_faq_never_asks_for_fields():
+    """FAQ 不需要任何字段，模型说要追问也不采信。"""
+    stub = StubLlm(replies={"退款要什么条件？": payload(
+        intent="faq", missing=["订单号"], needs_clarification=True)})
+    out = llm_triage("退款要什么条件？", [], stub)
+    assert out.needs_clarification is False
 
 
 def test_history_is_visible_to_the_model():
