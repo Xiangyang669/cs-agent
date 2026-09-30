@@ -14,6 +14,22 @@ from csagent.types import Route
 NODE_REPLY = "reply"
 
 
+def hop_payload(ticket, node: str) -> dict:
+    """记录本次去向，并在**第一次**写入时把它记成首跳。
+
+    首跳只能由第一个落地的分支节点写下；后续节点（比如业务查询失败后转人工）
+    **保留原值** —— 否则业务故障那一类的首跳会被降级那一步覆盖掉，
+    而「路由错了」和「降级错了」正是要分开测的两件事。
+
+    放在这里而不是 graph.py：`agents/handoff.py` 也要用，
+    而 agents 反过来 import graph 会绕成环。
+    """
+    return {
+        "route_taken": node,
+        "first_hop_taken": ticket.get("first_hop_taken") or node,
+    }
+
+
 def route_after_triage(ticket) -> str:
     """分流之后往哪走。返回 Route 的取值或节点名。"""
     if ticket.get("risk_level") == "high":

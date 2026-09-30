@@ -14,8 +14,12 @@ from dataclasses import dataclass, replace
 from csagent.agents.reply import business_rows
 from csagent.config import DEFAULT_TOP_K
 from csagent.evaluation.cases import SCENARIOS, EvalCase
-from csagent.graph import run_ticket
+from csagent.graph import continue_ticket, resume_ticket, run_ticket
 from csagent.types import Route, RunConfig
+
+# 评测时注入的那条「人工回复」。真实系统里它是坐席打的字；
+# 这里只需要一句确定的、可复现的话 —— 测的是上下文有没有丢，不是这句话好不好。
+HUMAN_REPLY_PLACEHOLDER = "人工已接入并处理"
 
 METRICS: tuple[str, ...] = (
     "route_accuracy",
@@ -138,6 +142,36 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else float("nan")
 
 
+def _has_checkpointer(graph) -> bool:
+    return getattr(graph, "checkpointer", None) is not None
+
+
+def run_case(graph, case: EvalCase, config: RunConfig, thread_id: str) -> dict:
+    """跑一条样本，返回最终状态。
+
+    **多轮样本真的逐轮跑**，而不是把最后一轮单独喂进去。
+    单独喂最后一轮也能得到正确答案（订单号本来就在那句话里），
+    但它测不到追问闭环 —— 而 S6 的存在意义正是那个闭环。
+
+    没有检查点的图跑不了多轮（状态留不住），此时退回「最后一轮 + 历史」。
+    """
+    user_turns = [t.message for t in case.turns if t.role == "user"]
+    if len(user_turns) == 1 or not _has_checkpointer(graph):
+        return run_ticket(graph, case.message, config, thread_id=thread_id,
+                          history=list(case.history))
+
+    ticket: dict = {}
+    for index, message in enumerate(user_turns):
+        if index == 0:
+            ticket = run_ticket(graph, message, config, thread_id=thread_id, history=[])
+        else:
+            ticket = continue_ticket(graph, message, thread_id=thread_id,
+                                     history=user_turns[:index])
+        if ticket.get("suspended"):
+            break
+    return ticket
+
+
 def run_matrix(cases: list[EvalCase], graph_factory) -> Matrix:
     """把评测集在四种配置下各跑一遍，产出矩阵。"""
     cells: dict[tuple[str, str], dict[str, float]] = {}
@@ -153,9 +187,15 @@ def run_matrix(cases: list[EvalCase], graph_factory) -> Matrix:
                 # 故障来自**样本**，不是来自配置 —— 同一配置下不同样本注入不同故障，
                 # 图本身不用变。没有故障的样本沿用原配置。
                 case_config = config if not c.fault else replace(config, faults=(c.fault,))
-                ticket = run_ticket(graph, c.message, case_config,
-                                    thread_id=f"{config_name}:{c.case_id}",
-                                    history=list(c.history))
+                thread_id = f"{config_name}:{c.case_id}"
+                ticket = run_case(graph, c, case_config, thread_id)
+                if ticket.get("suspended"):
+                    # 挂起的会话必须真的被恢复一次，否则「恢复正确率」的分母
+                    # 永远是 0 —— 一条永远测不到的指标比没有指标更糟。
+                    resumed = resume_ticket(graph, HUMAN_REPLY_PLACEHOLDER,
+                                            thread_id=thread_id)
+                    ticket = {**ticket, "resumed_with_context": bool(
+                        resumed.get("handoff_context") and resumed.get("final_reply"))}
                 for metric, value in _outcomes(c, ticket).items():
                     if value is not None:
                         collected[metric].append(value)

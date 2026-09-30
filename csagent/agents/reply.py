@@ -37,6 +37,11 @@ def compose_reply(ticket) -> str:
     ⚠️ 这里**不检查** `faults_hit`：如果这里也检查一遍，四种配置下的谎报率
        就都是 0，那条指标等于没测（见 `docs/cs-agent-v1.spec.md` §10）。
     """
+    # 人工已经答复过 —— 最终回复就是人工说的那句话，
+    # 而不是再盖一层「已为您转接人工」。用户看到的就是客服的答复本身。
+    if ticket.get("human_reply"):
+        return str(ticket["human_reply"])
+
     if ticket.get("route_taken") == Route.HUMAN.value:
         return HUMAN_REPLY
 

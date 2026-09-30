@@ -8,16 +8,18 @@
 """
 
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command
 
 from csagent.agents import reply as reply_agent
 from csagent.agents.business import build_business_subgraph
 from csagent.agents.guardrail import evaluate
+from csagent.agents.handoff import handoff_node
 from csagent.agents.knowledge import build_knowledge_subgraph
 from csagent.agents.triage_rules import rules_triage
 from csagent.config import DEFAULT_TOP_K
 from csagent.faults import FaultPolicy
-from csagent.routing import route_after_guardrail, route_after_triage
-from csagent.types import Route, Ticket
+from csagent.routing import hop_payload, route_after_guardrail, route_after_triage
+from csagent.types import RiskLevel, Route, Ticket
 
 # 节点名与 Route 的取值刻意保持一致 —— 条件边的映射因此是恒等的，
 # 少一层「名字 → 名字」的翻译就少一处能写错的地方。
@@ -28,19 +30,6 @@ NODE_BUSINESS = Route.BUSINESS.value
 NODE_HUMAN = Route.HUMAN.value
 NODE_GUARDRAIL = "guardrail"
 NODE_REPLY = "reply"
-
-
-def _hop(ticket: Ticket, node: str) -> dict:
-    """记录本次去向，并在**第一次**写入时把它记成首跳。
-
-    首跳只能由第一个落地的分支节点写下；后续节点（比如业务查询失败后转人工）
-    **保留原值** —— 否则 S4 的首跳会被降级那一步覆盖掉，
-    而这两件事正是要分开测的。
-    """
-    return {
-        "route_taken": node,
-        "first_hop_taken": ticket.get("first_hop_taken") or node,
-    }
 
 
 def _guardrail_node(ticket: Ticket) -> dict:
@@ -58,7 +47,7 @@ def _guardrail_node(ticket: Ticket) -> dict:
 
 def _triage_node(ticket: Ticket) -> dict:
     result = rules_triage(ticket.get("user_message", ""), ticket.get("history") or [])
-    return {
+    payload = {
         "intent": result.intent.value,
         "extracted": dict(result.extracted),
         "missing": result.missing,
@@ -66,13 +55,20 @@ def _triage_node(ticket: Ticket) -> dict:
         "matched_clauses": result.matched_clauses,
         "needs_clarification": result.needs_clarification,
     }
+    # 分流判出高风险时，**顺手把转人工的理由写下**。
+    # 这一步不能留给接管节点：挂起原语会让节点永远不返回，
+    # 理由就永远进不了状态 —— 而「转人工必须留下理由」是硬要求。
+    if result.risk_level is RiskLevel.HIGH:
+        clauses = "、".join(m.clause_id for m in result.matched_clauses) or "风险信号"
+        payload["handoff_reason"] = f"分流判定高风险（命中 {clauses}）"
+    return payload
 
 
 def _ask_user_node(ticket: Ticket) -> dict:
     """追问 —— 信息不全时先停下来问，不猜。"""
     fields = "、".join(ticket.get("missing") or ()) or "必要信息"
     return {
-        **_hop(ticket, NODE_ASK),
+        **hop_payload(ticket, NODE_ASK),
         "clarification_count": ticket.get("clarification_count", 0) + 1,
         "final_reply": f"为了帮您查询，请提供{fields}。",
     }
@@ -96,7 +92,7 @@ def _knowledge_node(subgraph):
         })
         return {
             "evidence": result.get("evidence", []),
-            **_hop(ticket, NODE_KNOWLEDGE),
+            **hop_payload(ticket, NODE_KNOWLEDGE),
         }
 
     return node
@@ -124,18 +120,21 @@ def _business_node(conn_provider):
             "business": result.get("business"),
             "faults_hit": result.get("faults_hit", []),
             "degraded": result.get("degraded", False),
-            **_hop(ticket, NODE_BUSINESS),
+            **hop_payload(ticket, NODE_BUSINESS),
         }
 
     return node
 
 
 def _human_node(ticket: Ticket) -> dict:
-    """转人工的占位节点 —— Task 11 会被真正的「挂起-恢复」替换。"""
+    """不启用人工接管时的转人工节点：给出话术并结束，**不挂起**。
+
+    与 `handoff_node` 的区别不是「跳过了一步」，而是这套配置里根本没有挂起能力 ——
+    两种配置是两张不同的图。
+    """
     return {
-        **_hop(ticket, NODE_HUMAN),
-        "handoff_reason": "分流判定为高风险",
-        "final_reply": reply_agent.HUMAN_REPLY,
+        **hop_payload(ticket, NODE_HUMAN),
+        "handoff_reason": ticket.get("handoff_reason") or "分流判定为高风险",
     }
 
 
@@ -161,16 +160,22 @@ def _default_conn_provider():
     return provider
 
 
-def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True):
+def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True,
+                hitl: bool = False):
     """按配置构建一张客服图。
 
     只给**启用的**机制建节点 —— 未启用的能力根本不在图里，
     从结构上保证它不会被调用（而不是靠节点内部 if 判断）。
 
-    ⚠️ `guardrail=False` 时守卫节点**根本不在图里**。这不是「守卫被跳过」，
-       而是「这套配置里没有守卫」—— 两种说法对应两张不同的图，
-       评测矩阵的「配置」这一维量的正是这个差别。
+    ⚠️ `guardrail=False` / `hitl=False` 时对应节点**根本不在图里**。
+       这不是「节点被跳过」，而是「这套配置里没有它」——
+       两种说法对应两张不同的图，评测矩阵的「配置」这一维量的正是这个差别。
+    ⚠️ `hitl=True` **必须**给检查点：挂起原语依赖持久化。缺了就大声失败，
+       不要静默退化成「不挂起」—— 那会让两种配置看起来一样。
     """
+    if hitl and checkpointer is None:
+        raise ValueError("hitl=True 需要 checkpointer：挂起依赖持久化，缺了它挂不起来")
+
     conn_provider = _default_conn_provider() if conn is None else (lambda: conn)
 
     builder = StateGraph(Ticket)
@@ -179,7 +184,7 @@ def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True)
     builder.add_node(NODE_ASK, _ask_user_node)
     builder.add_node(NODE_KNOWLEDGE, _knowledge_node(build_knowledge_subgraph(retriever)))
     builder.add_node(NODE_BUSINESS, _business_node(conn_provider))
-    builder.add_node(NODE_HUMAN, _human_node)
+    builder.add_node(NODE_HUMAN, handoff_node if hitl else _human_node)
     builder.add_node(NODE_REPLY, _reply_node)
     if guardrail:
         builder.add_node(NODE_GUARDRAIL, _guardrail_node)
@@ -203,7 +208,9 @@ def build_graph(retriever, checkpointer=None, conn=None, guardrail: bool = True)
 
     builder.add_edge(NODE_REPLY, END)
     builder.add_edge(NODE_ASK, END)
-    builder.add_edge(NODE_HUMAN, END)
+    # 转人工也走回复节点：挂起恢复之后，最终回复应当就是人工说的那句话，
+    # 而不是另起一条「已转接」的固定话术。
+    builder.add_edge(NODE_HUMAN, NODE_REPLY)
 
     return builder.compile(checkpointer=checkpointer)
 
@@ -231,7 +238,71 @@ def run_ticket(graph, message: str, config, thread_id: str = "default",
     `thread_id` 在没有检查点时被忽略；Task 11 接上检查点后它才真正起作用，
     但调用方的写法不必因此改变。
     """
-    return graph.invoke(
+    result = graph.invoke(
         initial_state(message, config, history),
         config={"configurable": {"thread_id": thread_id}},
     )
+    return _mark_suspended(graph, thread_id, result)
+
+
+def _mark_suspended(graph, thread_id: str, result: dict) -> dict:
+    """挂起的会话要能被外部认出来，并且要能说清「现在停在哪」。
+
+    挂起原语是在节点内部抛出的，节点**没有机会**在返回值里写任何键 ——
+    所以 `route_taken` 在挂起时是空的，只能事后向检查点问一句
+    「下一步还有待执行的吗」。待执行的那个节点，就是工单此刻所在的位置。
+
+    ⚠️ 这里要**覆盖**已有的 `route_taken`，不能保留：业务故障那条路上，
+       业务节点早就写过 `route_taken="business"` 了，但工单最终停在人工 ——
+       「最终去向」是后者。而「首跳」由 `first_hop_taken` 单独保留，不受影响。
+    """
+    try:
+        snapshot = graph.get_state({"configurable": {"thread_id": thread_id}})
+    except Exception:  # noqa: BLE001 —— 没有检查点的图问不了，那就是没挂起
+        return result
+
+    pending = tuple(getattr(snapshot, "next", ()) or ())
+    if not pending:
+        return result
+    # 待执行的节点就是工单此刻所在的位置。`first_hop_taken` 也一并补上：
+    # 分流直接转人工时，接管节点**就是**首跳，而它挂起了没机会写。
+    return {
+        **result,
+        "route_taken": pending[0],
+        "first_hop_taken": result.get("first_hop_taken") or pending[0],
+        "suspended": True,
+    }
+
+
+def continue_ticket(graph, message: str, thread_id: str = "default",
+                    history: list[str] | None = None) -> Ticket:
+    """在**已有会话**上再走一轮 —— 只喂新消息，**不重置状态**。
+
+    ⚠️ 与 `run_ticket` 的唯一区别就是「不重置」，而这个区别是全部意义所在：
+       追问次数、已抽字段、已获证据都要跨轮留下来。重置它们会让第二轮
+       看起来像第一轮 —— 用户明明已经报过订单号了，系统又问一遍。
+    """
+    payload: dict = {
+        "user_message": message,
+        # ⚠️ **逐轮重置首跳**。评测集里 S6 的 `first_hop` 是 `business`，
+        #    对应的是「补上订单号之后，第一步该直查业务系统」这一步，
+        #    而不是第 1 轮那次缺字段追问。不重置的话，多轮样本的首跳会
+        #    永远停在第一轮的 `ask_user` 上，这个指标对 S6 就恒为 0。
+        "first_hop_taken": None,
+    }
+    if history is not None:
+        payload["history"] = list(history)
+    return graph.invoke(payload, config={"configurable": {"thread_id": thread_id}})
+
+
+def resume_ticket(graph, human_reply: str, thread_id: str = "default") -> Ticket:
+    """人工回话后续跑。
+
+    ⚠️ **已经结束的会话不重复处理**。人工重复回话、客户端超时重试都会走到这里，
+       重复处理会产出两条互相矛盾的回复 —— 而用户只会看到其中一条。
+    """
+    config = {"configurable": {"thread_id": thread_id}}
+    snapshot = graph.get_state(config)
+    if not getattr(snapshot, "next", ()):
+        return dict(snapshot.values)
+    return graph.invoke(Command(resume=human_reply), config=config)

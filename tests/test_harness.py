@@ -155,6 +155,64 @@ def test_resume_correctness_is_nan_when_nothing_suspended():
         "没有任何会话被挂起，恢复正确率无从谈起"
 
 
+def test_multi_turn_cases_are_replayed_turn_by_turn(tmp_path):
+    """S6 必须**真的走三轮**，而不是把最后一轮单独喂进去。
+
+    怎么证明回放真的发生了：看追问次数。只有第 1 轮真的被跑过、
+    真的走了追问，它才不是 0。
+    """
+    from csagent.evaluation.cases import build_cases
+    from csagent.graph import build_graph
+    from csagent.memory.checkpointer import memory_checkpointer
+    from csagent.retrieval import StubRetriever
+    from csagent.tools.db import build_db, connect
+    from csagent.evaluation.harness import run_case
+
+    p = tmp_path / "biz.db"
+    build_db(p)
+    s6 = next(c for c in build_cases() if c.scenario == "S6")
+    graph = build_graph(StubRetriever(by_query={}), checkpointer=memory_checkpointer(),
+                        conn=connect(p), guardrail=True)
+    ticket = run_case(graph, s6, config_for("L+G"), thread_id="mt")
+    assert ticket["route_taken"] == "business"
+    assert ticket["clarification_count"] >= 1, "第 1 轮的追问没有发生 → 没有真回放"
+    assert ticket["first_hop_taken"] == "business", \
+        "首跳该反映**最后一轮**（补上订单号后直查业务），而不是第 1 轮的追问"
+
+
+def test_multi_turn_without_a_checkpointer_still_runs():
+    """没有检查点时退回「最后一轮 + 历史」—— 能测路由，测不了闭环。"""
+    from csagent.evaluation.cases import build_cases
+    from csagent.evaluation.harness import run_case
+
+    s6 = next(c for c in build_cases() if c.scenario == "S6")
+    ticket = run_case(FakeGraph({"订单号 200001，帮我看看": "business"}), s6,
+                      config_for("R"), thread_id="mt2")
+    assert ticket["route_taken"] == "business"
+
+
+def test_resume_correctness_is_measured_on_a_real_suspension():
+    """真挂起 → 真恢复 → 上下文不丢，恢复正确率必须是 1.000。
+
+    这条要的是**真图**：假图不会挂起，分母就永远是 0 ——
+    而一条永远为 0（或永远是 —）的指标看起来像「这里没问题」。
+    """
+    from csagent.graph import build_graph
+    from csagent.memory.checkpointer import memory_checkpointer
+    from csagent.retrieval import StubRetriever
+
+    cases = [case("a", "S3", "我要人工，重复扣费了", "human")]
+
+    def factory(cfg):
+        return build_graph(StubRetriever(by_query={}), checkpointer=memory_checkpointer(),
+                           guardrail=cfg.guardrail, hitl=cfg.hitl)
+
+    m = run_matrix(cases, factory)
+    assert m.cells[("L+G+H", "S3")]["resume_correctness"] == 1.0
+    assert math.isnan(m.cells[("R", "S3")]["resume_correctness"]), \
+        "不启用人工接管的配置里没有挂起，恢复正确率不该有值"
+
+
 def test_matrix_covers_every_config_and_scenario():
     cases = [case("a", "S1", "msg1", "knowledge"), case("b", "S3", "msg2", "human")]
     m = run_matrix(cases, lambda cfg: FakeGraph({"msg1": "knowledge", "msg2": "human"}))
