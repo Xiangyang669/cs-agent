@@ -3,6 +3,8 @@
 > 一个把「该不该转人工」这件事**做成可量化治理**的客服 Agent。
 > LangGraph 显式条件边编排 · 双重判定 · 自建业务后端与故障注入 · 真挂起人工接管 · 110 条人工复核评测集
 
+**仓库**：<https://github.com/Xiangyang669/cs-agent>
+
 ---
 
 ## 这个项目要解决什么
@@ -150,3 +152,11 @@ state = run_ticket(graph, "你们重复扣费了两次，我要投诉！", cfg, 
 Python · LangGraph（StateGraph / 条件边 / 子图 / interrupt）· langgraph-checkpoint-sqlite · Pydantic · FastAPI · SQLite · DeepSeek · Langfuse
 
 **刻意不引入**：Postgres、Redis、任何前端框架 —— 定位是单机、一条命令起、可复现。
+
+---
+
+## 相关项目
+
+**[rag-v1](https://github.com/Xiangyang669/rag-v1)** —— 三层检索 RAG（向量 / 全文 / 图谱三路并行召回 + 加权 RRF 融合，含多模态入库、引用溯源与拒答层）。
+
+两个项目是分开的：本项目自带 `StubRetriever`，**不依赖 rag-v1**；两者共享的是同一套工程纪律——**判据先于实现、失败照实写、把边界与代价写进文档**。
